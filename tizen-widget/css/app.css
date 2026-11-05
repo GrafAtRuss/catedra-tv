@@ -14,8 +14,10 @@ button { cursor: pointer; }
 .clock span { color: #b5a496; font-size: 16px; letter-spacing: 1px; }
 .main { -webkit-flex: 1; flex: 1; overflow: auto; padding: 28px 36px; }
 .nav { display: -webkit-flex; display: flex; border-top: 1px solid #6a5344; background: #1a0e10; }
-.nav button { -webkit-flex: 1; flex: 1; height: 88px; border: 0; background: transparent; color: #b5a496; }
+.nav button { -webkit-flex: 1; flex: 1; height: 96px; border: 0; background: transparent; color: #b5a496; text-align: center; }
 .nav button.on { background: #3c2226; color: #e6d3a1; }
+.nav .nm { display: block; line-height: 1.2; }
+.nav .key { display: inline-block; margin-top: 6px; min-width: 28px; height: 28px; line-height: 24px; padding: 0 7px; border: 2px solid #c4a46a; border-radius: 8px; background: #10080a; color: #e6d3a1; font-size: 16px; }
 :focus { outline: 3px solid #e6d3a1; outline-offset: 2px; }
 .row { display: -webkit-flex; display: flex; }
 .grow { -webkit-flex: 1; flex: 1; }
@@ -96,7 +98,8 @@ input[type="text"] { width: 100%; background: #10080a; border: 1px solid #6a5344
   .clock span { font-size: 12px; }
   .main { padding: 12px; }
   .nav { -webkit-flex-wrap: wrap; flex-wrap: wrap; }
-  .nav button { -webkit-flex: 1; flex: 1; height: 52px; font-size: 12px; }
+  .nav button { -webkit-flex: 1; flex: 1; height: 72px; font-size: 12px; }
+  .nav .key { min-width: 22px; height: 22px; line-height: 18px; margin-top: 4px; font-size: 13px; border-radius: 6px; }
   .row { -webkit-flex-direction: column; flex-direction: column; }
   .hero, .side { width: 100%; margin: 0 0 12px; min-height: 0; }
   .hero { padding: 18px; }

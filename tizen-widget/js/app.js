@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.5";
+var APP_VERSION = "1.2.6";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -313,17 +313,17 @@ function agenda() {
 function shell(body) {
   var a = agenda();
   var nav = [
-    ["home", "0 Главная"],
-    ["live", "1 Эфир"],
-    ["schedule", "2 Расписание"],
-    ["archive", "3 Записи"],
-    ["settings", "4 Настройки"]
+    ["home", "Главная", "0"],
+    ["live", "Эфир", "1"],
+    ["schedule", "Расписание", "2"],
+    ["archive", "Записи", "3"],
+    ["settings", "Настройки", "4"]
   ];
   var navHtml = "";
   var n;
   for (n = 0; n < nav.length; n++) {
     var on = state.screen === nav[n][0] || (state.screen === "watch" && nav[n][0] === "archive");
-    navHtml += '<button class="' + (on ? "on" : "") + '" data-tv="1" data-act="go" data-arg="' + nav[n][0] + '">' + nav[n][1] + "</button>";
+    navHtml += '<button class="' + (on ? "on" : "") + '" data-tv="1" data-act="go" data-arg="' + nav[n][0] + '"><span class="nm">' + nav[n][1] + '</span><span class="key">' + nav[n][2] + "</span></button>";
   }
   return (
     '<header class="hd">' +
