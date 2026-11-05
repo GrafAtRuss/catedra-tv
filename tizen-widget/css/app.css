@@ -1,0 +1,77 @@
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: #10080a; color: #f3ecdf; }
+body { font-family: SamsungOne, TizenSans, Arial, Helvetica, sans-serif; font-size: 22px; }
+button, input { font-family: inherit; font-size: 22px; color: inherit; }
+button { cursor: pointer; }
+#app { height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+.hd { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; min-height: 92px; height: auto; padding: 12px 36px; border-bottom: 1px solid #6a5344; }
+.mark { width: 64px; height: 64px; margin-right: 16px; border-radius: 14px; }
+.brand { font-family: "Times New Roman", Times, serif; font-size: 40px; color: #e6d3a1; line-height: 1; }
+.ver { font-family: SamsungOne, TizenSans, Arial, Helvetica, sans-serif; font-size: 18px; color: #b5a496; }
+.sub { color: #b5a496; font-size: 16px; margin-top: 4px; line-height: 1.25; max-width: 980px; }
+.clock { margin-left: auto; text-align: right; }
+.clock b { display: block; font-family: "Times New Roman", Times, serif; font-size: 40px; font-weight: normal; }
+.clock span { color: #b5a496; font-size: 16px; letter-spacing: 1px; }
+.main { -webkit-flex: 1; flex: 1; overflow: auto; padding: 28px 36px; }
+.nav { display: -webkit-flex; display: flex; border-top: 1px solid #6a5344; background: #1a0e10; }
+.nav button { -webkit-flex: 1; flex: 1; height: 88px; border: 0; background: transparent; color: #b5a496; }
+.nav button.on { background: #3c2226; color: #e6d3a1; }
+:focus { outline: 3px solid #e6d3a1; outline-offset: 2px; }
+.row { display: -webkit-flex; display: flex; }
+.grow { -webkit-flex: 1; flex: 1; }
+.card { background: #2a1618; border: 1px solid #6a5344; border-radius: 18px; }
+.hero { position: relative; min-height: 420px; text-align: left; padding: 28px; overflow: hidden; width: 62%; margin-right: 20px; }
+.hero img { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.45; }
+.hero .shade { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #10080a; opacity: 0.45; }
+.hero .inn { position: relative; }
+.pill { display: inline-block; border: 1px solid #c4a46a; border-radius: 999px; color: #e6d3a1; padding: 6px 14px; font-size: 16px; letter-spacing: 2px; }
+h1, h2 { font-family: "Times New Roman", Times, serif; font-weight: normal; margin: 0; }
+h1 { font-size: 64px; margin-top: 80px; }
+.lead { color: #b5a496; max-width: 640px; margin-top: 12px; }
+.go { display: inline-block; margin-top: 28px; background: #c4a46a; color: #10080a; border: 0; border-radius: 999px; padding: 12px 22px; font-weight: bold; }
+.side { width: 38%; padding: 28px; }
+.kicker { color: #c4a46a; letter-spacing: 2px; font-size: 16px; }
+.side h2 { font-size: 36px; margin: 10px 0; }
+.muted { color: #b5a496; }
+.chips { margin-top: 18px; }
+.chips button { background: transparent; border: 1px solid #6a5344; color: #f3ecdf; border-radius: 999px; padding: 10px 16px; margin-right: 10px; }
+.today { margin-top: 20px; padding: 22px 24px; }
+.today h2 { font-size: 32px; color: #e6d3a1; }
+.svc { display: -webkit-flex; display: flex; padding: 10px 0; border-top: 1px solid #3c2226; }
+.tm { width: 90px; color: #c4a46a; font-family: "Times New Roman", Times, serif; font-size: 28px; }
+.cols { display: -webkit-flex; display: flex; }
+.col { width: 50%; }
+.player { height: 100%; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
+.pbar { display: -webkit-flex; display: flex; -webkit-align-items: center; align-items: center; margin-bottom: 12px; }
+.back { background: transparent; border: 1px solid #6a5344; color: #f3ecdf; border-radius: 999px; padding: 10px 18px; margin-right: 16px; }
+.stage { -webkit-flex: 1; flex: 1; background: #10080a; position: relative; min-height: 480px; }
+.stage iframe, .stage video, .stage object { position: absolute; left: 0; top: 0; width: 100%; height: 100%; border: 0; background: #10080a; }
+.hidden { display: none; }
+.tabs { margin: 16px 0; white-space: nowrap; }
+.tabs button { background: transparent; border: 1px solid #6a5344; color: #b5a496; border-radius: 14px; padding: 10px 16px; margin: 0 8px 8px 0; }
+.tabs button.on { color: #e6d3a1; border-color: #c4a46a; background: #2a1618; }
+.list .svc { background: #1a0e10; padding: 14px 16px; }
+.list .svc.alt { background: #2a1618; }
+.note { display: block; color: #b5a496; font-size: 18px; margin-top: 4px; }
+.grid { overflow: hidden; }
+.tile { float: left; width: 31%; margin: 0 2% 18px 0; background: #2a1618; border: 1px solid #6a5344; border-radius: 16px; text-align: left; padding: 0; overflow: hidden; }
+.tile img { width: 100%; height: 180px; object-fit: cover; background: #10080a; display: block; }
+.tile span { display: block; padding: 12px 14px 16px; }
+.tile b { font-weight: normal; }
+.box { background: #2a1618; border: 1px solid #6a5344; border-radius: 18px; padding: 22px 24px; margin-bottom: 16px; }
+label { display: block; color: #b5a496; font-size: 18px; margin: 12px 0 6px; }
+input[type="text"] { width: 100%; background: #10080a; border: 1px solid #6a5344; border-radius: 12px; padding: 12px 14px; }
+.switch { float: right; min-width: 140px; border-radius: 999px; border: 1px solid #6a5344; background: #10080a; }
+.switch.on { background: #c4a46a; color: #10080a; border-color: #c4a46a; }
+.copy-icon { width: 96px; height: 96px; float: left; margin: 0 18px 8px 0; border-radius: 18px; }
+.step { background: #2a1618; border: 1px solid #6a5344; border-radius: 16px; padding: 14px 18px; margin-bottom: 12px; }
+.warn { color: #e6d3a1; }
+#av-player { width: 1px; height: 1px; position: absolute; left: 0; top: 0; }
+#splash { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 20; background: #10080a; text-align: center; opacity: 1; -webkit-transition: opacity 0.6s linear; transition: opacity 0.6s linear; }
+.splash-bg { position: absolute; left: 0; top: 0; width: 100%; height: 100%; object-fit: cover; }
+.splash-shade { position: absolute; left: 0; top: 0; right: 0; bottom: 0; background: #10080a; opacity: 0.55; }
+.splash-inn { position: absolute; left: 8%; right: 8%; top: 16%; }
+.splash-mark { width: 240px; height: 240px; border-radius: 36px; }
+.splash-title { margin-top: 28px; font-family: "Times New Roman", Times, serif; font-size: 72px; color: #e6d3a1; }
+.splash-sub { margin: 12px auto 0; max-width: 920px; color: #f3ecdf; font-size: 22px; line-height: 1.35; }
+.splash-ver { margin-top: 22px; color: #c4a46a; letter-spacing: 3px; font-size: 20px; }
