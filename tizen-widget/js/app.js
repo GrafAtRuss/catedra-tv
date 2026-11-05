@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.2";
+var APP_VERSION = "1.2.3";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -309,12 +309,11 @@ function agenda() {
 function shell(body) {
   var a = agenda();
   var nav = [
-    ["home", "Главная"],
+    ["home", "0 Главная"],
     ["live", "1 Эфир"],
     ["schedule", "2 Расписание"],
     ["archive", "3 Записи"],
-    ["settings", "4 Настройки"],
-    ["install", "5 На ТВ"]
+    ["settings", "4 Настройки"]
   ];
   var navHtml = "";
   var n;
@@ -505,13 +504,6 @@ function settingsHtml() {
     '<button class="back" data-tv="1" data-act="reset">Сбросить настройки</button>';
 }
 
-function installHtml() {
-  return '<h1 style="font-size:48px">Это приложение на ТВ</h1>' +
-    '<div class="step"><b class="warn">Пульт. </b>Стрелки и OK. «Назад» — на предыдущий экран, с главного экрана — выход. Цифры 1–5: эфир, расписание, записи, настройки, справка. Красная — эфир, зелёная — расписание, жёлтая — записи, синяя — настройки.</div>' +
-    '<div class="step">Эфир берётся с Kinescope (' + esc(PAGE) + "). Если картинки нет, в настройках переключите «Видео» или «Сайт Kinescope», либо вставьте ссылку .m3u8.</div>" +
-    '<div class="step">Расписание читается с catedra.ru/schedule. Записи — с канала прихода на YouTube. Прокси и Invidious задаются в настройках.</div>';
-}
-
 function currentHls() {
   var o = (state.settings.streamOverride || "").replace(/^\s+|\s+$/g, "");
   if (o && /\.m3u8(\?|$)/i.test(o)) return state.settings.proxyOn ? applyProxy(o) : o;
@@ -592,7 +584,7 @@ window.CatedraOpen = function (screen, id) {
     render();
     return;
   }
-  if (screen === "live" || screen === "schedule" || screen === "archive" || screen === "settings" || screen === "home" || screen === "install") {
+  if (screen === "live" || screen === "schedule" || screen === "archive" || screen === "settings" || screen === "home") {
     go(screen);
   }
 };
@@ -604,7 +596,6 @@ function render() {
   else if (state.screen === "schedule") body = scheduleHtml();
   else if (state.screen === "archive") body = archiveHtml();
   else if (state.screen === "settings") body = settingsHtml();
-  else if (state.screen === "install") body = installHtml();
   else if (state.screen === "live") body = liveHtml();
   else if (state.screen === "watch") body = watchHtml();
   document.getElementById("app").innerHTML = shell(body);
@@ -798,7 +789,6 @@ function onKey(e) {
   if (code === 50 || code === 404) { go("schedule"); e.preventDefault(); return; }
   if (code === 51 || code === 405) { go("archive"); e.preventDefault(); return; }
   if (code === 52 || code === 406) { go("settings"); e.preventDefault(); return; }
-  if (code === 53) { go("install"); e.preventDefault(); return; }
   if (code === 10009 || code === 461 || code === 8 || code === 27) { e.preventDefault(); back(); return; }
   if (code === 37) { e.preventDefault(); moveFocus("left"); }
   else if (code === 39) { e.preventDefault(); moveFocus("right"); }
