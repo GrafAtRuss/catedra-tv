@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
             WebSettings.class.getMethod("setAllowUniversalAccessFromFileURLs", boolean.class).invoke(settings, Boolean.TRUE);
         } catch (Exception ignored) {
         }
-        settings.setUserAgentString(settings.getUserAgentString() + " CatedraTV/1.1.1");
+        settings.setUserAgentString(settings.getUserAgentString() + " CatedraTV/1.2.0");
         web.addJavascriptInterface(new Bridge(), "CatedraNative");
         web.setWebViewClient(new Client());
         web.setWebChromeClient(new Chrome());
@@ -221,7 +221,7 @@ public class MainActivity extends Activity {
             connection.setInstanceFollowRedirects(true);
             connection.setConnectTimeout(12000);
             connection.setReadTimeout(15000);
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android TV) CatedraTV/1.1.0");
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android) Catedra/1.2.0");
             connection.setRequestProperty("Accept", "text/html,application/xml,application/xhtml+xml,*/*");
             int code = connection.getResponseCode();
             InputStream stream = code >= 400 ? connection.getErrorStream() : connection.getInputStream();

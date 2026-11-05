@@ -75,3 +75,36 @@ input[type="text"] { width: 100%; background: #10080a; border: 1px solid #6a5344
 .splash-title { margin-top: 28px; font-family: "Times New Roman", Times, serif; font-size: 72px; color: #e6d3a1; }
 .splash-sub { margin: 12px auto 0; max-width: 920px; color: #f3ecdf; font-size: 22px; line-height: 1.35; }
 .splash-ver { margin-top: 22px; color: #c4a46a; letter-spacing: 3px; font-size: 20px; }
+
+@media (max-width: 900px) {
+  body { font-size: 16px; }
+  button, input { font-size: 16px; }
+  .hd { min-height: 0; padding: 10px 12px; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .mark { width: 44px; height: 44px; margin-right: 10px; }
+  .brand { font-size: 28px; }
+  .sub { display: none; }
+  .clock b { font-size: 26px; }
+  .clock span { font-size: 12px; }
+  .main { padding: 12px; }
+  .nav { -webkit-flex-wrap: wrap; flex-wrap: wrap; }
+  .nav button { -webkit-flex: 1 1 33%; flex: 1 1 33%; height: 52px; font-size: 13px; }
+  .row { -webkit-flex-direction: column; flex-direction: column; }
+  .hero, .side { width: 100%; margin: 0 0 12px; min-height: 0; }
+  .hero { padding: 18px; }
+  h1 { font-size: 36px; margin-top: 28px; }
+  .side h2, .today h2 { font-size: 26px; }
+  .tm { width: 64px; font-size: 22px; }
+  .cols { -webkit-flex-direction: column; flex-direction: column; }
+  .col { width: 100%; }
+  .tile { width: 48%; margin: 0 2% 12px 0; }
+  .tile img { height: 120px; }
+  .stage { min-height: 240px; }
+  .box, .today, .step { padding: 14px; }
+  .copy-icon { width: 72px; height: 72px; }
+  .splash-mark { width: 128px; height: 128px; }
+  .splash-title { font-size: 40px; }
+  .splash-sub { font-size: 16px; }
+  .splash-inn { top: 10%; }
+  .switch { float: none; display: block; margin-top: 8px; }
+}
+
