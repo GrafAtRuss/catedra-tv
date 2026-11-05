@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.6";
+var APP_VERSION = "1.2.7";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -59,6 +59,7 @@ var state = {
   poster: "",
   onAir: null,
   forceLive: false,
+  full: false,
   streamTitle: "Св. Месса",
   liveKind: "native",
   status: "",
@@ -435,7 +436,8 @@ function youtubeSrc(id) {
 
 function playerChrome(kicker, title, inner) {
   return '<div class="player"><div class="pbar"><button class="back" data-tv="1" data-act="back">Назад</button><div><div class="kicker">' +
-    esc(kicker) + "</div><div>" + esc(title) + "</div></div></div>" + inner + "</div>";
+    esc(kicker) + "</div><div>" + esc(title) + '</div></div><button class="back" data-tv="1" data-act="full">' +
+    (state.full ? "Окно" : "На весь экран") + "</button></div>" + inner + "</div>";
 }
 
 function offlineHtml() {
@@ -573,7 +575,7 @@ function nativePayload() {
       poster: state.recordings[i].thumb || ""
     });
   }
-  var playing = state.screen === "live" || state.screen === "watch";
+  var playing = state.screen === "watch" || (state.screen === "live" && (state.onAir === true || state.forceLive));
   var playTitle = state.screen === "watch" && state.watch ? state.watch.title : (state.streamTitle || "Св. Месса");
   var poster = state.poster || "";
   if (state.screen === "watch" && state.watch && state.watch.thumb) poster = state.watch.thumb;
@@ -587,6 +589,7 @@ function nativePayload() {
 }
 
 function syncNative() {
+  holdWake(state.screen === "watch" || (state.screen === "live" && (state.onAir === true || state.forceLive)));
   try {
     if (window.CatedraNative && window.CatedraNative.syncHome) window.CatedraNative.syncHome(nativePayload());
   } catch (e) {}
@@ -620,6 +623,7 @@ function render() {
   else if (state.screen === "live") body = liveHtml();
   else if (state.screen === "watch") body = watchHtml();
   document.getElementById("app").innerHTML = shell(body);
+  document.getElementById("app").className = state.full ? "fs" : "";
   bindInputs();
   var first = document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
@@ -677,6 +681,7 @@ function startLive() {
       var w = window.innerWidth || 1920;
       var h = window.innerHeight || 1080;
       av.setDisplayRect(0, 150, w, h - 280);
+      avRect();
       av.setListener({
         onbufferingstart: function () {},
         onbufferingcomplete: function () {},
@@ -699,6 +704,7 @@ function startLive() {
 }
 
 function go(screen) {
+  if (state.full) setFull(false);
   if (screen !== "watch" && screen !== "live") state.back = state.screen === "watch" || state.screen === "live" ? state.back : state.screen;
   state.screen = screen;
   render();
@@ -707,6 +713,7 @@ function go(screen) {
 function onAction(act, arg, node) {
   if (act === "go") go(arg);
   else if (act === "back") back();
+  else if (act === "full") setFull(!state.full);
   else if (act === "section-go") { state.section = parseInt(arg, 10) || 0; state.day = 0; go("schedule"); }
   else if (act === "section") { state.section = parseInt(arg, 10) || 0; state.day = 0; render(); }
   else if (act === "day") { state.day = parseInt(arg, 10) || 0; render(); }
@@ -745,7 +752,74 @@ function onAction(act, arg, node) {
   }
 }
 
+function setFull(on) {
+  state.full = on;
+  var app = document.getElementById("app");
+  if (app) app.className = on ? "fs" : "";
+  var keys = document.querySelectorAll("[data-act='full']");
+  var i;
+  for (i = 0; i < keys.length; i++) keys[i].innerHTML = on ? "Окно" : "На весь экран";
+  try {
+    if (on) {
+      if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+      else if (document.documentElement.webkitRequestFullscreen) document.documentElement.webkitRequestFullscreen();
+    } else if (document.exitFullscreen) document.exitFullscreen();
+    else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+  } catch (e) {}
+  avRect();
+}
+
+function avRect() {
+  if (!window.webapis || !webapis.avplay || state.liveKind !== "native") return;
+  try {
+    var w = window.innerWidth || 1920;
+    var h = window.innerHeight || 1080;
+    if (state.full) webapis.avplay.setDisplayRect(0, 0, w, h);
+    else webapis.avplay.setDisplayRect(0, 150, w, h - 280);
+  } catch (e) {}
+}
+
+function holdWake(on) {
+  try {
+    if (window.webapis && webapis.appcommon && webapis.appcommon.setScreenSaver) {
+      var mode = on ? webapis.appcommon.AppCommonScreenSaverState.SCREEN_SAVER_OFF : webapis.appcommon.AppCommonScreenSaverState.SCREEN_SAVER_ON;
+      webapis.appcommon.setScreenSaver(mode, function () {}, function () {});
+    }
+  } catch (e) {}
+  try {
+    if (window.tizen && tizen.power) {
+      if (on) tizen.power.request("SCREEN", "SCREEN_NORMAL");
+      else tizen.power.release("SCREEN");
+    }
+  } catch (e2) {}
+  try {
+    if (window.CatedraNative && window.CatedraNative.setAwake) window.CatedraNative.setAwake(on ? "1" : "0");
+  } catch (e3) {}
+  if (on) {
+    if (navigator.wakeLock && !state.wake) {
+      navigator.wakeLock.request("screen").then(function (lock) { state.wake = lock; }, function () {});
+    }
+  } else if (state.wake) {
+    try { state.wake.release(); } catch (e4) {}
+    state.wake = null;
+  }
+}
+
+function noteAir(on) {
+  var watching = state.screen === "live" && (state.onAir === true || state.forceLive);
+  if (watching && !on) return;
+  var was = state.onAir === true || state.forceLive;
+  state.onAir = on;
+  if (on) state.forceLive = false;
+  if (state.screen === "live") {
+    if (was && on) return;
+    render();
+  } else if (state.screen === "home") render();
+  else syncNative();
+}
+
 function back() {
+  if (state.full) { setFull(false); return; }
   if (state.screen === "home") {
     try { tizen.application.getCurrentApplication().exit(); } catch (e) {}
     try { if (window.CatedraNative && window.CatedraNative.exitApp) window.CatedraNative.exitApp(); } catch (e2) {}
@@ -1075,23 +1149,23 @@ function loadStream() {
   var override = (state.settings.streamOverride || "").replace(/^\s+|\s+$/g, "");
   if (override && /\.m3u8(\?|$)/i.test(override)) {
     state.hls = override;
-    probePlaylist(applyProxy(override), function (on) {
-      state.onAir = on;
-      if (on) state.forceLive = false;
-      if (state.screen === "live" || state.screen === "home") render();
-      else syncNative();
-    });
+    probePlaylist(applyProxy(override), function (on) { noteAir(on); });
     return;
   }
   if (override) {
-    state.onAir = true;
-    if (state.screen === "live") render();
+    if (state.onAir !== true) {
+      state.onAir = true;
+      if (state.screen === "live" || state.screen === "home") render();
+      else syncNative();
+    }
     return;
   }
   xhrText(applyProxy(PAGE), function (err, html) {
     if (err || !html) {
-      if (state.onAir === null) state.onAir = false;
-      if (state.screen === "live") render();
+      if (!(state.screen === "live" && (state.onAir === true || state.forceLive))) {
+        if (state.onAir === null) state.onAir = false;
+        if (state.screen === "live" || state.screen === "home") render();
+      }
       return;
     }
     var m = html.match(/https?:\\?\/\\?\/live\.kinescopecdn\.net[^"'\\]+master\.m3u8/);
@@ -1100,12 +1174,7 @@ function loadStream() {
     if (title) state.streamTitle = stripTags(title[1]);
     var poster = html.match(/property="og:image" content="([^"]+)"/);
     if (poster) state.poster = poster[1];
-    probePlaylist(state.hls, function (on) {
-      state.onAir = on;
-      if (on) state.forceLive = false;
-      if (state.screen === "live" || state.screen === "home") render();
-      else syncNative();
-    });
+    probePlaylist(state.hls, function (on) { noteAir(on); });
   });
 }
 

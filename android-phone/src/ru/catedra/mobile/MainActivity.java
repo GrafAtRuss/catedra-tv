@@ -11,6 +11,7 @@ import android.util.Rational;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebChromeClient;
 import android.webkit.WebResourceRequest;
@@ -260,6 +261,17 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applyAwake(final boolean on) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                if (web != null) web.setKeepScreenOn(on);
+            }
+        });
+    }
+
     public class Bridge {
         @JavascriptInterface
         public void syncHome(String json) {
@@ -273,6 +285,7 @@ public class MainActivity extends Activity {
                     @Override
                     public void run() {
                         playingNow = playing;
+                        applyAwake(playing);
                         NowPlaying.update(MainActivity.this, playing, title, poster);
                     }
                 });
@@ -288,6 +301,11 @@ public class MainActivity extends Activity {
                     finish();
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void setAwake(String on) {
+            applyAwake("1".equals(on));
         }
 
         @JavascriptInterface
