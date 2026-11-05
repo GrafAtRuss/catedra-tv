@@ -12,6 +12,11 @@ import android.os.Build;
 public final class NowPlaying {
     private static MediaSession session;
     private static String lastTitle = "Св. Месса";
+    private static boolean active;
+
+    public static boolean isPlaying() {
+        return active;
+    }
 
     private NowPlaying() {}
 
@@ -39,6 +44,7 @@ public final class NowPlaying {
         }
         if (title == null || title.length() == 0) title = "Св. Месса";
         lastTitle = title;
+        active = playing;
         MediaMetadata.Builder meta = new MediaMetadata.Builder();
         meta.putString(MediaMetadata.METADATA_KEY_TITLE, title);
         meta.putString(MediaMetadata.METADATA_KEY_ARTIST, "Кафедральный собор Непорочного Зачатия");

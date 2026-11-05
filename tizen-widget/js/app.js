@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.9";
+var APP_VERSION = "1.2.10";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -438,13 +438,9 @@ function fullLabel(on) {
   return '<span class="key">5</span> ' + (on ? "Окно" : "На весь экран");
 }
 
-function fullOverlay() {
-  return '<button class="fsgo" data-tv="1" data-fs="1" data-act="full">' + fullLabel(state.full) + "</button>";
-}
-
 function playerChrome(kicker, title, inner) {
   return '<div class="player"><div class="pbar"><button class="back" data-tv="1" data-act="back">Назад</button><div><div class="kicker">' +
-    esc(kicker) + "</div><div>" + esc(title) + '</div></div><button class="fsbar" data-tv="1" data-act="full">' +
+    esc(kicker) + "</div><div>" + esc(title) + '</div></div><button class="fsbar" data-tv="1" data-fs="1" data-act="full">' +
     fullLabel(state.full) + "</button></div>" + inner + "</div>";
 }
 
@@ -474,9 +470,9 @@ function liveHtml() {
       '<img class="seal" alt="" src="icon.png"><div class="kicker">ПРЯМОЙ ЭФИР</div><h2>Проверяем эфир</h2>' +
       '<p class="muted quiet">Если трансляции нет, здесь останется объявление.</p></div></div>';
   } else if (!showPlayer) stage = offlineHtml();
-  else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe>' + fullOverlay() + "</div>";
-  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay playsinline controls></video>' + fullOverlay() + "</div>";
-  else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div>" + fullOverlay() + "</div>";
+  else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe></div>';
+  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay playsinline controls></video></div>';
+  else stage += "</div>";
   var modes = showPlayer
     ? '<div class="chips" style="margin-top:12px">' +
       '<button data-tv="1" data-act="live-mode" data-arg="native" class="' + (kind === "native" ? "on" : "") + '">Плеер ТВ</button>' +
@@ -489,7 +485,7 @@ function liveHtml() {
 function watchHtml() {
   var w = state.watch;
   if (!w) return "<p>Нет записи</p>";
-  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe>' + fullOverlay() + "</div>");
+  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe></div>');
 }
 
 function watchSrc(w) {
@@ -637,6 +633,7 @@ function render() {
   var first = prefer || document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
   if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
+  syncPlane();
   syncNative();
 }
 
@@ -687,9 +684,6 @@ function startLive() {
     try {
       var av = webapis.avplay;
       av.open(url);
-      var w = window.innerWidth || 1920;
-      var h = window.innerHeight || 1080;
-      av.setDisplayRect(0, 150, w, h - 280);
       avRect();
       av.setListener({
         onbufferingstart: function () {},
@@ -776,6 +770,12 @@ function setFull(on) {
     else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
   } catch (e) {}
   avRect();
+  syncPlane();
+}
+
+function syncPlane() {
+  var native = state.screen === "live" && state.liveKind === "native" && (state.onAir === true || state.forceLive);
+  document.body.className = native ? "av" : "";
 }
 
 function avRect() {
@@ -783,8 +783,21 @@ function avRect() {
   try {
     var w = window.innerWidth || 1920;
     var h = window.innerHeight || 1080;
-    if (state.full) webapis.avplay.setDisplayRect(0, 0, w, h);
-    else webapis.avplay.setDisplayRect(0, 150, w, h - 280);
+    if (state.full) {
+      webapis.avplay.setDisplayRect(0, 0, w, h);
+      return;
+    }
+    var stage = document.querySelector(".stage");
+    if (stage && stage.getBoundingClientRect) {
+      var r = stage.getBoundingClientRect();
+      var rw = Math.round(r.width);
+      var rh = Math.round(r.height);
+      if (rw > 10 && rh > 10) {
+        webapis.avplay.setDisplayRect(Math.round(r.left), Math.round(r.top), rw, rh);
+        return;
+      }
+    }
+    webapis.avplay.setDisplayRect(0, 150, w, Math.max(200, h - 280));
   } catch (e) {}
 }
 
@@ -1174,6 +1187,28 @@ window.CatedraUpdate = function (payload) {
   if (state.screen === "settings" || state.screen === "home") render();
 };
 
+function tuneHls(masterUrl, text) {
+  if (!text || text.indexOf("#EXT-X-STREAM-INF") < 0) return masterUrl;
+  var lines = text.split("\n");
+  var bestUrl = "";
+  var bestBw = 0;
+  var i;
+  for (i = 0; i < lines.length - 1; i++) {
+    var m = lines[i].match(/BANDWIDTH=(\d+)/);
+    if (!m) continue;
+    var bw = parseInt(m[1], 10) || 0;
+    var next = lines[i + 1].replace(/^\s+|\s+$/g, "");
+    if (!next || next.charAt(0) === "#") continue;
+    if (!bestUrl || (bw <= 2000000 && bw > bestBw) || (bestBw > 2000000 && bw < bestBw)) {
+      bestUrl = next;
+      bestBw = bw;
+    }
+  }
+  if (!bestUrl) return masterUrl;
+  if (bestUrl.indexOf("http") !== 0) bestUrl = masterUrl.substring(0, masterUrl.lastIndexOf("/") + 1) + bestUrl;
+  return bestUrl;
+}
+
 function playlistLooksLive(text) {
   return text.indexOf("#EXTM3U") >= 0 && (text.indexOf("#EXT-X-STREAM-INF") >= 0 || text.indexOf("#EXTINF") >= 0);
 }
@@ -1187,7 +1222,7 @@ function probePlaylist(url, cb) {
     try { xhr.setRequestHeader("X-Catedra-Fetch", "1"); } catch (e0) {}
     xhr.onreadystatechange = function () {
       if (xhr.readyState !== 4) return;
-      cb(xhr.status >= 200 && xhr.status < 300 && playlistLooksLive(xhr.responseText || ""));
+      cb(xhr.status >= 200 && xhr.status < 300 && playlistLooksLive(xhr.responseText || ""), xhr.responseText || "");
     };
     xhr.onerror = function () { cb(false); };
     xhr.ontimeout = function () { cb(false); };
@@ -1196,10 +1231,15 @@ function probePlaylist(url, cb) {
 }
 
 function loadStream() {
+  var playing = state.screen === "watch" || (state.screen === "live" && (state.onAir === true || state.forceLive));
+  if (playing) return;
   var override = (state.settings.streamOverride || "").replace(/^\s+|\s+$/g, "");
   if (override && /\.m3u8(\?|$)/i.test(override)) {
     state.hls = override;
-    probePlaylist(applyProxy(override), function (on) { noteAir(on); });
+    probePlaylist(applyProxy(override), function (on, text) {
+      if (on && text) state.hls = tuneHls(state.hls, text);
+      noteAir(on);
+    });
     return;
   }
   if (override) {
@@ -1224,7 +1264,10 @@ function loadStream() {
     if (title) state.streamTitle = stripTags(title[1]);
     var poster = html.match(/property="og:image" content="([^"]+)"/);
     if (poster) state.poster = poster[1];
-    probePlaylist(state.hls, function (on) { noteAir(on); });
+    probePlaylist(state.hls, function (on, text) {
+      if (on && text) state.hls = tuneHls(state.hls, text);
+      noteAir(on);
+    });
   });
 }
 
@@ -1257,12 +1300,11 @@ function init() {
   loadStream();
   setTimeout(hideSplash, 1600);
   setTimeout(checkUpdate, 2500);
+  document.addEventListener("visibilitychange", keepLockedPlayback);
   setInterval(function () {
     if (state.screen === "home") render();
     loadStream();
-    keepLockedPlayback();
   }, 60000);
-  setInterval(keepLockedPlayback, 2000);
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

@@ -50,7 +50,11 @@ h1 { font-size: 64px; margin-top: 80px; }
 .fsgo { position: absolute; z-index: 6; right: 16px; top: 16px; border: 2px solid #e6d3a1; background: rgba(16, 8, 10, 0.9); color: #e6d3a1; border-radius: 14px; padding: 12px 16px; font-size: 20px; }
 .stage { -webkit-flex: 1; flex: 1; background: #10080a; position: relative; min-height: 480px; }
 .back { background: transparent; border: 1px solid #6a5344; color: #f3ecdf; border-radius: 999px; padding: 10px 18px; margin-right: 16px; }
-#app.fs .hd, #app.fs .nav { display: none; }
+#app.fs .hd, #app.fs .nav, #app.fs .pbar, #app.fs .chips { display: none; }
+body.av, body.av #app, body.av .main { background: transparent; }
+body.av .main { padding: 0; }
+body.av .hd, body.av .nav, body.av .pbar, body.av .chips { background: #1a0e10; }
+body.av .stage { background: transparent; min-height: 0; }
 #app.fs .main { position: fixed; left: 0; top: 0; right: 0; bottom: 0; z-index: 30; padding: 0; }
 #app.fs .player { height: 100%; }
 #app.fs .stage { min-height: 0; height: 100%; }

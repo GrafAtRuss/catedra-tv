@@ -19,12 +19,15 @@ public final class Watcher {
     public static void kick(Context context) {
         Context app = context.getApplicationContext();
         schedule(app);
-        new Thread(new Runnable() {
+        Thread worker = new Thread(new Runnable() {
             @Override
             public void run() {
+                if (NowPlaying.isPlaying()) return;
                 runCheck(app);
             }
-        }).start();
+        });
+        worker.setPriority(Thread.MIN_PRIORITY);
+        worker.start();
     }
 
     public static void schedule(Context context) {
