@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.1";
+var APP_VERSION = "1.2.2";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -60,7 +60,8 @@ var state = {
   streamTitle: "Св. Месса",
   liveKind: "native",
   status: "",
-  settings: { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "" }
+  settings: { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "" },
+  update: { state: "idle", version: "", message: "Проверка релизов GitHub при запуске.", url: "" }
 };
 
 function pad2(n) {
@@ -358,6 +359,7 @@ function homeHtml() {
     : '<h2>Сейчас службы нет</h2>';
   var next = a.next ? '<p>Дальше ' + esc(a.next.time + "  " + a.next.title) + "</p>" : "";
   return (
+    updateBanner() +
     '<div class="row">' +
       '<button class="card hero" data-tv="1" data-act="go" data-arg="live">' + poster +
         '<div class="inn"><span class="pill">ПРЯМОЙ ЭФИР</span><h1>Святая Месса</h1>' +
@@ -482,7 +484,8 @@ function field(label, id, value, placeholder) {
 function settingsHtml() {
   var s = state.settings;
   var sample = applyProxy(RSS);
-  return '<h1 style="font-size:48px">Настройки</h1><p class="muted">Сохраняются в памяти телевизора.</p>' +
+  return '<h1 style="font-size:48px">Настройки</h1><p class="muted">Сохраняются в памяти устройства.</p>' +
+    updateBox() +
     '<section class="box"><button class="switch ' + (s.proxyOn ? "on" : "") + '" data-tv="1" data-act="toggle-proxy">' + (s.proxyOn ? "Прокси включён" : "Прокси выключен") + "</button>" +
     "<h2>Прокси</h2><p class=\"muted\">Если YouTube или поток с телевизора не открываются.</p><div style=\"clear:both\"></div>" +
     '<div class="tabs"><button data-tv="1" data-act="proxy-mode" data-arg="prefix" class="' + (s.proxyMode === "prefix" ? "on" : "") + '">Префикс хост:порт</button>' +
@@ -717,6 +720,8 @@ function onAction(act, arg, node) {
     render();
   } else if (act === "reload-rec") loadRecordings();
   else if (act === "force-live") { state.forceLive = true; render(); }
+  else if (act === "check-update") checkUpdate();
+  else if (act === "install-update") installUpdate();
   else if (act === "live-mode") {
     state.liveKind = arg;
     state.status = "";
@@ -875,6 +880,115 @@ function loadSchedule() {
   });
 }
 
+function versionNewer(remote, local) {
+  var a = String(remote || "").replace(/^v/, "").split(".");
+  var b = String(local || "").split(".");
+  var n = a.length > b.length ? a.length : b.length;
+  var i;
+  for (i = 0; i < n; i++) {
+    var x = parseInt(a[i] || "0", 10) || 0;
+    var y = parseInt(b[i] || "0", 10) || 0;
+    if (x > y) return true;
+    if (x < y) return false;
+  }
+  return false;
+}
+
+function updateKind() {
+  if (document.documentElement.className.indexOf("phone") >= 0) return "phone";
+  if (window.CatedraNative) return "tv";
+  try {
+    if (typeof tizen !== "undefined") return "wgt";
+  } catch (e) {}
+  return "web";
+}
+
+function updateBanner() {
+  var u = state.update;
+  if (!u || (u.state !== "ready" && u.state !== "available" && u.state !== "downloading" && u.state !== "need-permission")) return "";
+  return '<button class="box" data-tv="1" data-act="install-update" style="width:100%;text-align:left;margin-bottom:16px"><div class="kicker">ОБНОВЛЕНИЕ</div><div>' + esc(u.message) + "</div></button>";
+}
+
+function updateBox() {
+  var u = state.update || { message: "" };
+  var button = u.state === "ready" || u.state === "available" || u.state === "need-permission"
+    ? '<button class="go" data-tv="1" data-act="install-update">Скачать и установить</button>'
+    : '<button class="back" data-tv="1" data-act="check-update">Проверить сейчас</button>';
+  return '<section class="box"><h2>Обновление</h2><p class="muted">Версия ' + APP_VERSION + '. Новые сборки берутся из релизов GitHub.</p>' +
+    '<p class="note">' + esc(u.message || "") + "</p>" + button + "</section>";
+}
+
+function checkUpdate() {
+  state.update.state = "checking";
+  state.update.message = "Проверяю GitHub…";
+  if (state.screen === "settings" || state.screen === "home") render();
+  if (window.CatedraNative && window.CatedraNative.checkUpdate) {
+    window.CatedraNative.checkUpdate();
+    return;
+  }
+  xhrText("https://api.github.com/repos/GrafAtRuss/catedra-tv/releases/latest", function (err, text) {
+    if (err || !text) {
+      state.update.state = "error";
+      state.update.message = "Не удалось проверить обновление.";
+      if (state.screen === "settings" || state.screen === "home") render();
+      return;
+    }
+    var data;
+    try { data = JSON.parse(text); } catch (e) { data = null; }
+    var remote = data && data.tag_name ? String(data.tag_name).replace(/^v/, "") : "";
+    var assets = data && data.assets ? data.assets : [];
+    var kind = updateKind();
+    var asset = null;
+    var i;
+    for (i = 0; i < assets.length; i++) {
+      var name = assets[i].name || "";
+      if (kind === "phone" && name.indexOf("Catedra-Phone-") === 0) asset = assets[i];
+      else if (kind === "tv" && name.indexOf("Catedra-") === 0 && name.indexOf("Phone") < 0 && name.indexOf(".apk") > 0) asset = assets[i];
+      else if ((kind === "wgt" || kind === "web") && name.indexOf(".wgt") > 0) asset = assets[i];
+    }
+    if (!remote || !asset) {
+      state.update.state = "error";
+      state.update.message = "В релизе нет подходящего файла.";
+    } else if (!versionNewer(remote, APP_VERSION)) {
+      state.update.state = "latest";
+      state.update.version = remote;
+      state.update.message = "Установлена последняя версия " + APP_VERSION + ".";
+      state.update.url = "";
+    } else {
+      state.update.state = "available";
+      state.update.version = remote;
+      state.update.url = asset.browser_download_url || "";
+      state.update.message = kind === "wgt"
+        ? "Доступна версия " + remote + ". Скачайте виджет и установите его через ForkTizenInstall."
+        : "Доступна версия " + remote + ".";
+    }
+    if (state.screen === "settings" || state.screen === "home") render();
+  });
+}
+
+function installUpdate() {
+  if (window.CatedraNative && window.CatedraNative.installUpdate) {
+    window.CatedraNative.installUpdate();
+    return;
+  }
+  if (state.update && state.update.url) window.open(state.update.url, "_blank");
+}
+
+window.CatedraUpdate = function (payload) {
+  var data = payload;
+  if (typeof payload === "string") {
+    try { data = JSON.parse(payload); } catch (e) { return; }
+  }
+  if (!data) return;
+  state.update = {
+    state: data.state || "idle",
+    version: data.version || "",
+    message: data.message || "",
+    url: data.url || ""
+  };
+  if (state.screen === "settings" || state.screen === "home") render();
+};
+
 function playlistLooksLive(text) {
   return text.indexOf("#EXTM3U") >= 0 && (text.indexOf("#EXT-X-STREAM-INF") >= 0 || text.indexOf("#EXTINF") >= 0);
 }
@@ -962,6 +1076,7 @@ function init() {
   loadRecordings();
   loadStream();
   setTimeout(hideSplash, 1600);
+  setTimeout(checkUpdate, 2500);
   setInterval(function () {
     if (state.screen === "home") render();
     loadStream();

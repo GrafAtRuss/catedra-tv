@@ -37,6 +37,19 @@ public class MainActivity extends Activity {
     private String pendingScreen = "home";
     private String pendingId = "";
 
+    public boolean isPlayingNow() {
+        return playingNow;
+    }
+
+    public void reportUpdate(final String json) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (web != null) web.evaluateJavascript("if(window.CatedraUpdate)CatedraUpdate(" + json + ")", null);
+            }
+        });
+    }
+
     public static void open(String screen, String id) {
         MainActivity activity = current;
         if (activity == null) return;
@@ -96,6 +109,7 @@ public class MainActivity extends Activity {
     protected void onResume() {
         super.onResume();
         current = this;
+        Updater.onResume(this);
     }
 
     @Override
@@ -201,6 +215,12 @@ public class MainActivity extends Activity {
         public void onPageFinished(WebView view, String url) {
             pageReady = true;
             applyPending();
+            web.postDelayed(new Runnable() {
+                @Override
+                public void run() {
+                    Updater.check(MainActivity.this, true);
+                }
+            }, 4000);
         }
 
         @Override
@@ -262,6 +282,21 @@ public class MainActivity extends Activity {
                 @Override
                 public void run() {
                     finish();
+                }
+            });
+        }
+
+        @JavascriptInterface
+        public void checkUpdate() {
+            Updater.check(MainActivity.this, false);
+        }
+
+        @JavascriptInterface
+        public void installUpdate() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Updater.install(MainActivity.this);
                 }
             });
         }
