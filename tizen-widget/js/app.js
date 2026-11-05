@@ -1,11 +1,12 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.4";
+var APP_VERSION = "1.2.5";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
 var SCHEDULE_URL = "https://catedra.ru/schedule";
 var RSS = "https://www.youtube.com/feeds/videos.xml?channel_id=" + CHANNEL;
+var RUTUBE_DEFAULT = "40512872";
 var DAYS = ["ВОСКРЕСЕНЬЕ", "ПОНЕДЕЛЬНИК", "ВТОРНИК", "СРЕДА", "ЧЕТВЕРГ", "ПЯТНИЦА", "СУББОТА"];
 var DAY_INDEX = { ВОСКРЕСЕНЬЕ: 0, ПОНЕДЕЛЬНИК: 1, ВТОРНИК: 2, СРЕДА: 3, ЧЕТВЕРГ: 4, ПЯТНИЦА: 5, СУББОТА: 6 };
 var SETTINGS_KEY = "catedra-settings-v1";
@@ -50,6 +51,7 @@ var state = {
   recordings: [],
   channelTitle: "Приход Непорочного Зачатия Пресвятой Девы Марии",
   recError: "",
+  recHost: "",
   section: 0,
   day: 0,
   watch: null,
@@ -60,7 +62,7 @@ var state = {
   streamTitle: "Св. Месса",
   liveKind: "native",
   status: "",
-  settings: { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "" },
+  settings: { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "", archiveSource: "auto", rutubeId: "" },
   update: { state: "idle", version: "", message: "Проверка релизов GitHub при запуске.", url: "" }
 };
 
@@ -88,6 +90,8 @@ function loadSettings() {
     state.settings.proxyUrl = p.proxyUrl || "";
     state.settings.youtubeBase = p.youtubeBase || "";
     state.settings.streamOverride = p.streamOverride || "";
+    state.settings.archiveSource = p.archiveSource === "youtube" || p.archiveSource === "rutube" ? p.archiveSource : "auto";
+    state.settings.rutubeId = p.rutubeId || "";
   } catch (e) {}
 }
 
@@ -404,7 +408,9 @@ function scheduleHtml() {
 }
 
 function archiveHtml() {
-  var html = "<h1 style=\"font-size:48px\">Записи</h1><p class=\"muted\">" + esc(state.channelTitle) + "</p>";
+  var html = "<h1 style=\"font-size:48px\">Записи</h1><p class=\"muted\">" + esc(state.channelTitle) +
+    (state.recHost === "rutube" ? " · Рутуб" : " · YouTube") + "</p>";
+  if (state.recHost === "rutube") html += '<p class="note">Это архив прихода на Рутубе. Свежие мессы после 13 июля 2025 есть только на YouTube.</p>';
   if (state.recError) html += '<div class="box"><p>' + esc(state.recError) + '</p><button class="go" data-tv="1" data-act="reload-rec">Повторить</button></div>';
   if (!state.recordings.length && !state.recError) html += '<p class="muted">Загрузка…</p>';
   html += '<div class="grid">';
@@ -473,7 +479,15 @@ function liveHtml() {
 function watchHtml() {
   var w = state.watch;
   if (!w) return "<p>Нет записи</p>";
-  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(youtubeSrc(w.id)) + '" allowfullscreen></iframe></div>');
+  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe></div>');
+}
+
+function watchSrc(w) {
+  if (w.host === "rutube") {
+    var src = "https://rutube.ru/play/embed/" + encodeURIComponent(w.id) + "?autoplay=1";
+    return state.settings.proxyOn ? applyProxy(src) : src;
+  }
+  return youtubeSrc(w.id);
 }
 
 function field(label, id, value, placeholder) {
@@ -494,6 +508,13 @@ function settingsHtml() {
     '<section class="box"><h2>Записи YouTube</h2>' +
     field("Invidious или Piped. Пусто — обычный YouTube.", "ytBase", s.youtubeBase, "https://yewtu.be") +
     '<p class="note">Плеер откроет ваш-адрес/embed/ID. Так записи идут, когда встроенный YouTube на ТВ молчит.</p></section>' +
+    '<section class="box"><h2>Если YouTube недоступен</h2>' +
+    '<div class="tabs">' +
+    '<button data-tv="1" data-act="archive-source" data-arg="auto" class="' + (s.archiveSource === "auto" ? "on" : "") + '">Авто</button>' +
+    '<button data-tv="1" data-act="archive-source" data-arg="youtube" class="' + (s.archiveSource === "youtube" ? "on" : "") + '">Только YouTube</button>' +
+    '<button data-tv="1" data-act="archive-source" data-arg="rutube" class="' + (s.archiveSource === "rutube" ? "on" : "") + '">Только Рутуб</button></div>' +
+    field("Номер канала Рутуба. Пусто — канал прихода.", "rutubeId", s.rutubeId, "40512872") +
+    '<p class="note">На Рутубе у прихода 366 месс, последняя — 13 июля 2025. Яндекс, Дзен и ВК такого архива не ведут. «Авто» берёт Рутуб, если лента YouTube не открылась.</p></section>' +
     '<section class="box"><h2>Трансляция</h2>' +
     field("Своя ссылка Kinescope или .m3u8. Пусто — официальный эфир.", "streamUrl", s.streamOverride, PAGE) +
     '<p class="note">На UE49N5500 надёжнее прямая .m3u8: её играет плеер телевизора, без нового сайта Kinescope.</p></section>' +
@@ -607,7 +628,7 @@ function render() {
 }
 
 function bindInputs() {
-  var map = { proxyUrl: "proxyUrl", ytBase: "youtubeBase", streamUrl: "streamOverride" };
+  var map = { proxyUrl: "proxyUrl", ytBase: "youtubeBase", streamUrl: "streamOverride", rutubeId: "rutubeId" };
   var id;
   for (id in map) {
     if (!map.hasOwnProperty(id)) continue;
@@ -705,8 +726,12 @@ function onAction(act, arg, node) {
     state.settings.proxyMode = arg === "query" ? "query" : "prefix";
     saveSettings();
     render();
+  } else if (act === "archive-source") {
+    state.settings.archiveSource = arg === "youtube" || arg === "rutube" ? arg : "auto";
+    saveSettings();
+    loadRecordings();
   } else if (act === "reset") {
-    state.settings = { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "" };
+    state.settings = { proxyOn: false, proxyMode: "prefix", proxyUrl: "", youtubeBase: "", streamOverride: "", archiveSource: "auto", rutubeId: "" };
     saveSettings();
     render();
   } else if (act === "reload-rec") loadRecordings();
@@ -821,30 +846,76 @@ function formatWhen(iso) {
 }
 
 function loadRecordings() {
+  var mode = state.settings.archiveSource || "auto";
   state.recError = "";
+  if (mode === "rutube") { loadRutube(); return; }
   xhrText(applyProxy(RSS), function (err, xml) {
-    if (err || !xml) {
-      state.recError = "Не удалось загрузить записи. Проверьте сеть или укажите прокси и Invidious.";
-      if (state.screen === "archive") render();
+    var items = parseYoutube(xml);
+    if (err || !xml || !items.length) {
+      if (mode === "auto") { loadRutube(); return; }
+      state.recError = err || !xml ? "Не удалось загрузить записи. Проверьте сеть или укажите прокси и Invidious." : "Лента YouTube пуста.";
+      state.recordings = items;
+      if (state.screen === "archive" || state.screen === "home") render();
       else syncNative();
       return;
     }
-    var entries = xml.split("<entry>").slice(1);
-    var items = [];
-    var i;
-    for (i = 0; i < entries.length; i++) {
-      var idm = entries[i].match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
-      if (!idm) continue;
-      var title = (entries[i].match(/<media:title>([^<]*)<\/media:title>/) || entries[i].match(/<title>([^<]*)<\/title>/) || ["", "Запись"])[1];
-      var thumb = (entries[i].match(/<media:thumbnail url="([^"]+)"/) || ["", ""])[1];
-      var published = (entries[i].match(/<published>([^<]+)<\/published>/) || ["", ""])[1];
-      items.push({ id: idm[1], title: stripTags(title), thumb: thumb, when: formatWhen(published) });
-    }
     var ch = xml.match(/<title>([^<]+)<\/title>/);
     if (ch) state.channelTitle = stripTags(ch[1]);
+    state.recHost = "youtube";
     state.recordings = items;
-    if (!items.length) state.recError = "Лента канала пуста.";
-    if (state.screen === "archive") render();
+    if (state.screen === "archive" || state.screen === "home") render();
+    else syncNative();
+  });
+}
+
+function parseYoutube(xml) {
+  var items = [];
+  if (!xml) return items;
+  var entries = xml.split("<entry>").slice(1);
+  var i;
+  for (i = 0; i < entries.length; i++) {
+    var idm = entries[i].match(/<yt:videoId>([^<]+)<\/yt:videoId>/);
+    if (!idm) continue;
+    var title = (entries[i].match(/<media:title>([^<]*)<\/media:title>/) || entries[i].match(/<title>([^<]*)<\/title>/) || ["", "Запись"])[1];
+    var thumb = (entries[i].match(/<media:thumbnail url="([^"]+)"/) || ["", ""])[1];
+    var published = (entries[i].match(/<published>([^<]+)<\/published>/) || ["", ""])[1];
+    items.push({ id: idm[1], host: "youtube", title: stripTags(title), thumb: thumb, when: formatWhen(published) });
+  }
+  return items;
+}
+
+function loadRutube() {
+  var id = String(state.settings.rutubeId || RUTUBE_DEFAULT).replace(/\D/g, "") || RUTUBE_DEFAULT;
+  var url = "https://rutube.ru/api/video/person/" + id + "/?page=1&limit=20&format=json";
+  xhrText(applyProxy(url), function (err, text) {
+    var items = [];
+    if (!err && text) {
+      try {
+        var data = JSON.parse(text);
+        var list = data.results || [];
+        var i;
+        for (i = 0; i < list.length; i++) {
+          if (!list[i].id) continue;
+          items.push({
+            id: String(list[i].id),
+            host: "rutube",
+            title: list[i].title || "Запись",
+            thumb: list[i].thumbnail_url || "",
+            when: formatWhen(list[i].publication_ts || list[i].created_ts || "")
+          });
+        }
+      } catch (e) {}
+    }
+    if (!items.length) {
+      state.recError = "Не удалось загрузить записи с Рутуба.";
+      state.recordings = [];
+    } else {
+      state.recError = "";
+      state.recHost = "rutube";
+      state.channelTitle = "Приход Непорочного Зачатия Пресвятой Девы Марии";
+      state.recordings = items;
+    }
+    if (state.screen === "archive" || state.screen === "home") render();
     else syncNative();
   });
 }
