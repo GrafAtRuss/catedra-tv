@@ -8,5 +8,6 @@ public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         HomeChannel.ensureLive(context.getApplicationContext());
+        Watcher.kick(context.getApplicationContext());
     }
 }

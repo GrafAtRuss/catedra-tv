@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.8";
+var APP_VERSION = "1.2.9";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -475,7 +475,7 @@ function liveHtml() {
       '<p class="muted quiet">Если трансляции нет, здесь останется объявление.</p></div></div>';
   } else if (!showPlayer) stage = offlineHtml();
   else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe>' + fullOverlay() + "</div>";
-  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay controls></video>' + fullOverlay() + "</div>";
+  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay playsinline controls></video>' + fullOverlay() + "</div>";
   else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div>" + fullOverlay() + "</div>";
   var modes = showPlayer
     ? '<div class="chips" style="margin-top:12px">' +
@@ -814,9 +814,40 @@ function holdWake(on) {
   }
 }
 
+function noteArchive(items) {
+  if (!items || !items.length || !items[0].id) return;
+  var mark = (items[0].host || "youtube") + ":" + items[0].id;
+  var prev = "";
+  try { prev = localStorage.getItem("catedra-seen-archive") || ""; } catch (e) {}
+  if (prev && prev !== mark) nativeNotice("archive", items[0].title || "Новая запись", mark);
+  try { localStorage.setItem("catedra-seen-archive", mark); } catch (e2) {}
+}
+
+function nativeNotice(kind, title, text) {
+  try {
+    if (window.CatedraNative && window.CatedraNative.notice) window.CatedraNative.notice(kind, title || "", text || "");
+  } catch (e) {}
+  if (kind === "live-off") return;
+  try {
+    if (window.tizen && tizen.notification && tizen.StatusNotification) {
+      var n = new tizen.StatusNotification("SIMPLE", "Кафедра", { content: title || text || "Кафедра", iconPath: "icon.png" });
+      tizen.notification.post(n);
+    }
+  } catch (e2) {}
+}
+
+function keepLockedPlayback() {
+  if (!document.hidden) return;
+  if (state.screen !== "live" && state.screen !== "watch") return;
+  var v = document.getElementById("html5");
+  if (v && v.paused) { try { v.play(); } catch (e) {} }
+}
+
 function noteAir(on) {
   var watching = state.screen === "live" && (state.onAir === true || state.forceLive);
   if (watching && !on) return;
+  if (on && state.onAir !== true) nativeNotice("live", "Началась трансляция", "Сейчас идёт месса собора Непорочного Зачатия");
+  if (!on && state.onAir === true) nativeNotice("live-off", "", "");
   var was = state.onAir === true || state.forceLive;
   state.onAir = on;
   if (on) state.forceLive = false;
@@ -950,6 +981,7 @@ function loadRecordings() {
     if (ch) state.channelTitle = stripTags(ch[1]);
     state.recHost = "youtube";
     state.recordings = items;
+    noteArchive(items);
     if (state.screen === "archive" || state.screen === "home") render();
     else syncNative();
   });
@@ -1001,6 +1033,7 @@ function loadRutube() {
       state.recHost = "rutube";
       state.channelTitle = "Приход Непорочного Зачатия Пресвятой Девы Марии";
       state.recordings = items;
+      noteArchive(items);
     }
     if (state.screen === "archive" || state.screen === "home") render();
     else syncNative();
@@ -1063,6 +1096,7 @@ function updateBox() {
     ? '<button class="go" data-tv="1" data-act="install-update">Скачать и установить</button>'
     : '<button class="back" data-tv="1" data-act="check-update">Проверить сейчас</button>';
   return '<section class="box"><h2>Обновление</h2><p class="muted">Версия ' + APP_VERSION + '. Новые сборки берутся из релизов GitHub.</p>' +
+    '<p class="muted">Уведомления: новая версия, начало эфира и новые записи. На телефоне эфир продолжается при заблокированном экране.</p>' +
     '<p class="note">' + esc(u.message || "") + "</p>" + button + "</section>";
 }
 
@@ -1111,6 +1145,7 @@ function checkUpdate() {
       state.update.message = kind === "wgt"
         ? "Доступна версия " + remote + ". Скачайте виджет и установите его через ForkTizenInstall."
         : "Доступна версия " + remote + ".";
+      nativeNotice("update", "Кафедра " + remote, "Доступна новая версия приложения");
     }
     if (state.screen === "settings" || state.screen === "home") render();
   });
@@ -1225,7 +1260,9 @@ function init() {
   setInterval(function () {
     if (state.screen === "home") render();
     loadStream();
+    keepLockedPlayback();
   }, 60000);
+  setInterval(keepLockedPlayback, 2000);
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);

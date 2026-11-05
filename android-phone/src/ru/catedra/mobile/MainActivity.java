@@ -1,6 +1,8 @@
 package ru.catedra.mobile;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.app.PictureInPictureParams;
 import android.content.Intent;
 import android.graphics.Color;
@@ -99,6 +101,10 @@ public class MainActivity extends Activity {
         web.requestFocus();
         readIntent(getIntent());
         web.loadUrl("file:///android_asset/www/index.html");
+        if (Build.VERSION.SDK_INT >= 33 && checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 44);
+        }
+        Watcher.kick(this);
     }
 
     @Override
@@ -107,6 +113,33 @@ public class MainActivity extends Activity {
         setIntent(intent);
         readIntent(intent);
         applyPending();
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        keepPlaying();
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        keepPlaying();
+    }
+
+    private void keepPlaying() {
+        if (!playingNow || web == null) return;
+        web.onResume();
+        web.resumeTimers();
+        web.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (playingNow && web != null) {
+                    web.onResume();
+                    web.resumeTimers();
+                }
+            }
+        }, 400);
     }
 
     @Override
@@ -301,6 +334,12 @@ public class MainActivity extends Activity {
                     finish();
                 }
             });
+        }
+
+        @JavascriptInterface
+        public void notice(String kind, String title, String text) {
+            String screen = "archive".equals(kind) ? "archive" : ("update".equals(kind) ? "settings" : "live");
+            Alerts.show(MainActivity.this, kind, title, text, screen);
         }
 
         @JavascriptInterface
