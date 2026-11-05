@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.0";
+var APP_VERSION = "1.2.1";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -55,6 +55,8 @@ var state = {
   watch: null,
   hls: "",
   poster: "",
+  onAir: null,
+  forceLive: false,
   streamTitle: "Св. Месса",
   liveKind: "native",
   status: "",
@@ -429,18 +431,42 @@ function playerChrome(kicker, title, inner) {
     esc(kicker) + "</div><div>" + esc(title) + "</div></div></div>" + inner + "</div>";
 }
 
+function offlineHtml() {
+  var a = agenda();
+  var line = "Ближайшая служба появится в расписании.";
+  if (a.current) {
+    line = "По расписанию сейчас " + a.current.time + " " + a.current.title + (a.current.end ? ", до " + a.current.end : "") + ". Эфир ещё не включён.";
+  } else if (a.next) {
+    line = "Ближайшая служба — " + a.next.time + " " + a.next.title + (a.nextDay ? ", " + a.nextDay.toLowerCase() : "") + ".";
+  }
+  return '<div class="offline"><img class="bg" alt="" src="splash.jpg"><div class="veil"></div><div class="inn">' +
+    '<img class="seal" alt="" src="icon.png">' +
+    '<div class="kicker">ПРЯМОЙ ЭФИР</div>' +
+    '<h2>Сейчас трансляции нет</h2>' +
+    '<p class="when">' + esc(line) + "</p>" +
+    '<p class="muted quiet">Плеер откроется здесь сам, когда начнётся трансляция.</p>' +
+    '<button class="plain" data-tv="1" data-act="force-live">Открыть плеер всё равно</button></div></div>';
+}
+
 function liveHtml() {
   var kind = state.liveKind;
+  var showPlayer = state.onAir === true || state.forceLive;
   var stage = '<div class="stage">';
-  if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe>';
-  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay controls></video>';
-  else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div>";
-  stage += "</div>";
-  var modes = '<div class="chips" style="margin-top:12px">' +
-    '<button data-tv="1" data-act="live-mode" data-arg="native" class="' + (kind === "native" ? "on" : "") + '">Плеер ТВ</button>' +
-    '<button data-tv="1" data-act="live-mode" data-arg="video" class="' + (kind === "video" ? "on" : "") + '">Видео</button>' +
-    '<button data-tv="1" data-act="live-mode" data-arg="iframe" class="' + (kind === "iframe" ? "on" : "") + '">Сайт Kinescope</button></div>';
-  return playerChrome("Прямой эфир", state.streamTitle, stage + modes + (state.status && kind !== "native" ? '<p class="muted">' + esc(state.status) + "</p>" : ""));
+  if (state.onAir === null && !state.forceLive) {
+    stage = '<div class="offline"><img class="bg" alt="" src="splash.jpg"><div class="veil"></div><div class="inn">' +
+      '<img class="seal" alt="" src="icon.png"><div class="kicker">ПРЯМОЙ ЭФИР</div><h2>Проверяем эфир</h2>' +
+      '<p class="muted quiet">Если трансляции нет, здесь останется объявление.</p></div></div>';
+  } else if (!showPlayer) stage = offlineHtml();
+  else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe></div>';
+  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay controls></video></div>';
+  else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div></div>";
+  var modes = showPlayer
+    ? '<div class="chips" style="margin-top:12px">' +
+      '<button data-tv="1" data-act="live-mode" data-arg="native" class="' + (kind === "native" ? "on" : "") + '">Плеер ТВ</button>' +
+      '<button data-tv="1" data-act="live-mode" data-arg="video" class="' + (kind === "video" ? "on" : "") + '">Видео</button>' +
+      '<button data-tv="1" data-act="live-mode" data-arg="iframe" class="' + (kind === "iframe" ? "on" : "") + '">Сайт Kinescope</button></div>'
+    : "";
+  return playerChrome("Прямой эфир", state.streamTitle, stage + modes + (state.status && showPlayer && kind !== "native" ? '<p class="muted">' + esc(state.status) + "</p>" : ""));
 }
 
 function watchHtml() {
@@ -582,7 +608,7 @@ function render() {
   bindInputs();
   var first = document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
-  if (state.screen === "live") startLive();
+  if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
   syncNative();
 }
 
@@ -690,6 +716,7 @@ function onAction(act, arg, node) {
     saveSettings();
     render();
   } else if (act === "reload-rec") loadRecordings();
+  else if (act === "force-live") { state.forceLive = true; render(); }
   else if (act === "live-mode") {
     state.liveKind = arg;
     state.status = "";
@@ -848,19 +875,62 @@ function loadSchedule() {
   });
 }
 
+function playlistLooksLive(text) {
+  return text.indexOf("#EXTM3U") >= 0 && (text.indexOf("#EXT-X-STREAM-INF") >= 0 || text.indexOf("#EXTINF") >= 0);
+}
+
+function probePlaylist(url, cb) {
+  if (!url) { cb(false); return; }
+  try {
+    var xhr = new XMLHttpRequest();
+    xhr.open("GET", url, true);
+    xhr.timeout = 8000;
+    try { xhr.setRequestHeader("X-Catedra-Fetch", "1"); } catch (e0) {}
+    xhr.onreadystatechange = function () {
+      if (xhr.readyState !== 4) return;
+      cb(xhr.status >= 200 && xhr.status < 300 && playlistLooksLive(xhr.responseText || ""));
+    };
+    xhr.onerror = function () { cb(false); };
+    xhr.ontimeout = function () { cb(false); };
+    xhr.send();
+  } catch (e) { cb(false); }
+}
+
 function loadStream() {
   var override = (state.settings.streamOverride || "").replace(/^\s+|\s+$/g, "");
-  if (override && /\.m3u8(\?|$)/i.test(override)) return;
+  if (override && /\.m3u8(\?|$)/i.test(override)) {
+    state.hls = override;
+    probePlaylist(applyProxy(override), function (on) {
+      state.onAir = on;
+      if (on) state.forceLive = false;
+      if (state.screen === "live" || state.screen === "home") render();
+      else syncNative();
+    });
+    return;
+  }
+  if (override) {
+    state.onAir = true;
+    if (state.screen === "live") render();
+    return;
+  }
   xhrText(applyProxy(PAGE), function (err, html) {
-    if (err || !html) return;
+    if (err || !html) {
+      if (state.onAir === null) state.onAir = false;
+      if (state.screen === "live") render();
+      return;
+    }
     var m = html.match(/https?:\\?\/\\?\/live\.kinescopecdn\.net[^"'\\]+master\.m3u8/);
     if (m) state.hls = m[0].replace(/\\\//g, "/");
     var title = html.match(/<title>([^<]+)<\/title>/);
     if (title) state.streamTitle = stripTags(title[1]);
     var poster = html.match(/property="og:image" content="([^"]+)"/);
     if (poster) state.poster = poster[1];
-    if (state.screen === "home") render();
-    else syncNative();
+    probePlaylist(state.hls, function (on) {
+      state.onAir = on;
+      if (on) state.forceLive = false;
+      if (state.screen === "live" || state.screen === "home") render();
+      else syncNative();
+    });
   });
 }
 
@@ -894,6 +964,7 @@ function init() {
   setTimeout(hideSplash, 1600);
   setInterval(function () {
     if (state.screen === "home") render();
+    loadStream();
   }, 60000);
 }
 
