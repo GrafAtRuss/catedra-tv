@@ -130,8 +130,14 @@ public final class Updater {
             String name = asset.optString("name", "");
             boolean match = phone
                 ? name.startsWith("Catedra-Phone-") && name.endsWith(".apk")
-                : name.startsWith("Catedra-") && name.indexOf("Phone") < 0 && name.endsWith(".apk");
+                : name.startsWith("Catedra-TV-") && name.endsWith(".apk");
             if (match) return asset;
+        }
+        if (phone) return null;
+        for (int i = 0; i < assets.length(); i++) {
+            JSONObject asset = assets.getJSONObject(i);
+            String name = asset.optString("name", "");
+            if (name.startsWith("Catedra-") && name.indexOf("Phone") < 0 && name.endsWith(".apk")) return asset;
         }
         return null;
     }

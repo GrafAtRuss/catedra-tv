@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.7";
+var APP_VERSION = "1.2.8";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -434,10 +434,18 @@ function youtubeSrc(id) {
   return state.settings.proxyOn ? applyProxy(direct) : direct;
 }
 
+function fullLabel(on) {
+  return '<span class="key">5</span> ' + (on ? "Окно" : "На весь экран");
+}
+
+function fullOverlay() {
+  return '<button class="fsgo" data-tv="1" data-fs="1" data-act="full">' + fullLabel(state.full) + "</button>";
+}
+
 function playerChrome(kicker, title, inner) {
   return '<div class="player"><div class="pbar"><button class="back" data-tv="1" data-act="back">Назад</button><div><div class="kicker">' +
-    esc(kicker) + "</div><div>" + esc(title) + '</div></div><button class="back" data-tv="1" data-act="full">' +
-    (state.full ? "Окно" : "На весь экран") + "</button></div>" + inner + "</div>";
+    esc(kicker) + "</div><div>" + esc(title) + '</div></div><button class="fsbar" data-tv="1" data-act="full">' +
+    fullLabel(state.full) + "</button></div>" + inner + "</div>";
 }
 
 function offlineHtml() {
@@ -466,9 +474,9 @@ function liveHtml() {
       '<img class="seal" alt="" src="icon.png"><div class="kicker">ПРЯМОЙ ЭФИР</div><h2>Проверяем эфир</h2>' +
       '<p class="muted quiet">Если трансляции нет, здесь останется объявление.</p></div></div>';
   } else if (!showPlayer) stage = offlineHtml();
-  else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe></div>';
-  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay controls></video></div>';
-  else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div></div>";
+  else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe>' + fullOverlay() + "</div>";
+  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay controls></video>' + fullOverlay() + "</div>";
+  else stage += '<div class="inn" style="padding:24px"><p class="warn">' + esc(state.status || "Открываю поток телевизионным плеером…") + "</p></div>" + fullOverlay() + "</div>";
   var modes = showPlayer
     ? '<div class="chips" style="margin-top:12px">' +
       '<button data-tv="1" data-act="live-mode" data-arg="native" class="' + (kind === "native" ? "on" : "") + '">Плеер ТВ</button>' +
@@ -481,7 +489,7 @@ function liveHtml() {
 function watchHtml() {
   var w = state.watch;
   if (!w) return "<p>Нет записи</p>";
-  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe></div>');
+  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe>' + fullOverlay() + "</div>");
 }
 
 function watchSrc(w) {
@@ -625,7 +633,8 @@ function render() {
   document.getElementById("app").innerHTML = shell(body);
   document.getElementById("app").className = state.full ? "fs" : "";
   bindInputs();
-  var first = document.querySelector("[data-tv]");
+  var prefer = document.querySelector("[data-fs]");
+  var first = prefer || document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
   if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
   syncNative();
@@ -758,7 +767,7 @@ function setFull(on) {
   if (app) app.className = on ? "fs" : "";
   var keys = document.querySelectorAll("[data-act='full']");
   var i;
-  for (i = 0; i < keys.length; i++) keys[i].innerHTML = on ? "Окно" : "На весь экран";
+  for (i = 0; i < keys.length; i++) keys[i].innerHTML = fullLabel(on);
   try {
     if (on) {
       if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
@@ -888,6 +897,10 @@ function onKey(e) {
   if (code === 50 || code === 404) { go("schedule"); e.preventDefault(); return; }
   if (code === 51 || code === 405) { go("archive"); e.preventDefault(); return; }
   if (code === 52 || code === 406) { go("settings"); e.preventDefault(); return; }
+  if (code === 53) {
+    if (state.screen === "live" || state.screen === "watch") { e.preventDefault(); setFull(!state.full); }
+    return;
+  }
   if (code === 10009 || code === 461 || code === 8 || code === 27) { e.preventDefault(); back(); return; }
   if (code === 37) { e.preventDefault(); moveFocus("left"); }
   else if (code === 39) { e.preventDefault(); moveFocus("right"); }
@@ -1077,9 +1090,11 @@ function checkUpdate() {
     var i;
     for (i = 0; i < assets.length; i++) {
       var name = assets[i].name || "";
-      if (kind === "phone" && name.indexOf("Catedra-Phone-") === 0) asset = assets[i];
-      else if (kind === "tv" && name.indexOf("Catedra-") === 0 && name.indexOf("Phone") < 0 && name.indexOf(".apk") > 0) asset = assets[i];
-      else if ((kind === "wgt" || kind === "web") && name.indexOf(".wgt") > 0) asset = assets[i];
+      if (kind === "phone" && name.indexOf("Catedra-Phone-") === 0 && name.indexOf(".apk") > 0) asset = assets[i];
+      else if (kind === "tv" && name.indexOf("Catedra-TV-") === 0 && name.indexOf(".apk") > 0) asset = assets[i];
+      else if (kind === "tv" && !asset && name.indexOf("Catedra-") === 0 && name.indexOf("Phone") < 0 && name.indexOf(".apk") > 0) asset = assets[i];
+      else if ((kind === "wgt" || kind === "web") && name.indexOf("Catedra-TV-") === 0 && name.indexOf(".wgt") > 0) asset = assets[i];
+      else if ((kind === "wgt" || kind === "web") && !asset && name.indexOf(".wgt") > 0) asset = assets[i];
     }
     if (!remote || !asset) {
       state.update.state = "error";
