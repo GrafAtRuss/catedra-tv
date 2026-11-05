@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.3";
+var APP_VERSION = "1.2.4";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -400,7 +400,7 @@ function scheduleHtml() {
   }
   return '<h1 style="font-size:48px">Расписание</h1><p class="muted">' + esc(state.notice) + '</p>' +
     '<div style="margin:16px 0"><button class="go" data-tv="1" data-act="go" data-arg="live">Открыть эфир</button></div>' +
-    '<div class="tabs">' + tabs + "</div><div class=\"tabs\">" + days + '</div><div class="card list">' + list + "</div>";
+    '<div class="tabs rites">' + tabs + "</div><div class=\"tabs\">" + days + '</div><div class="card list">' + list + "</div>";
 }
 
 function archiveHtml() {

@@ -56,7 +56,7 @@ h1 { font-size: 64px; margin-top: 80px; }
 .offline .quiet { margin-top: 16px; font-size: 18px; }
 .offline .plain { margin-top: 18px; background: transparent; border: 0; color: #c4a46a; text-decoration: underline; }
 .hidden { display: none; }
-.tabs { margin: 16px 0; white-space: nowrap; }
+.tabs { margin: 16px 0; }
 .tabs button { background: transparent; border: 1px solid #6a5344; color: #b5a496; border-radius: 14px; padding: 10px 16px; margin: 0 8px 8px 0; }
 .tabs button.on { color: #e6d3a1; border-color: #c4a46a; background: #2a1618; }
 .list .svc { background: #1a0e10; padding: 14px 16px; }
@@ -118,5 +118,14 @@ input[type="text"] { width: 100%; background: #10080a; border: 1px solid #6a5344
   .splash-sub { font-size: 16px; }
   .splash-inn { top: 10%; }
   .switch { float: none; display: block; margin-top: 8px; }
+}
+
+@media (orientation: portrait) {
+  .rites button {
+    display: block;
+    width: 100%;
+    margin-right: 0;
+    text-align: left;
+  }
 }
 
