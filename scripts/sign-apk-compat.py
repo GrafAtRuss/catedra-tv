@@ -1,10 +1,15 @@
 #!/usr/bin/env python3
-"""JAR v1 signature named CERT.* plus APK Signature Scheme v2, no v3 and no verity padding."""
+"""JAR v1 signature named CERT.* plus APK Signature Scheme v2.
+
+META-INF entries are rewritten without ZIP data descriptors, so a store
+parser that only reads local-header sizes still sees CERT.RSA.
+"""
 import hashlib
 import struct
 import subprocess
 import sys
 import tempfile
+import zipfile
 from pathlib import Path
 
 KS = "/workspace/android-tv/catedra.keystore"
@@ -49,8 +54,8 @@ def clear_zip_flags(data: bytearray) -> None:
             raise SystemExit("bad central directory")
         flag = struct.unpack_from("<H", data, off + 8)[0] & ~0x0800
         struct.pack_into("<H", data, off + 8, flag)
-        struct.pack_into("<H", data, off + 4, 20)  # version made by: DOS
-        struct.pack_into("<I", data, off + 38, 0)  # no unix mode
+        struct.pack_into("<H", data, off + 4, 20)
+        struct.pack_into("<I", data, off + 38, 0)
         local = struct.unpack_from("<I", data, off + 42)[0]
         nlen = struct.unpack_from("<H", data, off + 28)[0]
         elen = struct.unpack_from("<H", data, off + 30)[0]
@@ -62,26 +67,29 @@ def clear_zip_flags(data: bytearray) -> None:
         off += 46 + nlen + elen + clen
 
 
-def export_key_and_cert() -> tuple[bytes, bytes, bytes]:
-    from cryptography.hazmat.primitives.serialization import (
-        Encoding,
-        NoEncryption,
-        PrivateFormat,
-        PublicFormat,
-        load_der_private_key,
-        pkcs12,
+def rewrite_without_descriptors(src: Path, dst: Path) -> None:
+    with zipfile.ZipFile(src) as zin:
+        items = [(info, zin.read(info.filename)) for info in zin.infolist()]
+    with zipfile.ZipFile(dst, "w") as zout:
+        for info, data in items:
+            out = zipfile.ZipInfo(filename=info.filename, date_time=info.date_time)
+            out.compress_type = info.compress_type
+            out.create_system = 0
+            out.external_attr = 0
+            out.flag_bits = 0
+            zout.writestr(out, data)
+
+
+def export_key_and_cert():
+    from cryptography.hazmat.primitives.serialization import Encoding, PublicFormat, pkcs12
+
+    key, cert, _ = pkcs12.load_key_and_certificates(Path(KS).read_bytes(), STOREPASS.encode())
+    return key, cert.public_bytes(Encoding.DER), key.public_key().public_bytes(
+        Encoding.DER, PublicFormat.SubjectPublicKeyInfo
     )
 
-    raw = Path(KS).read_bytes()
-    key, cert, _ = pkcs12.load_key_and_certificates(raw, STOREPASS.encode())
-    cert_der = cert.public_bytes(Encoding.DER)
-    pub_der = key.public_key().public_bytes(Encoding.DER, PublicFormat.SubjectPublicKeyInfo)
-    sig = key.sign(b"", None) if False else None
-    del sig
-    return key, cert_der, pub_der
 
-
-def sign_digest_block(key, content: bytes) -> bytes:
+def sign_content(key, content: bytes) -> bytes:
     from cryptography.hazmat.primitives import hashes
     from cryptography.hazmat.primitives.asymmetric import padding
 
@@ -108,8 +116,7 @@ def insert_v2(data: bytearray, value: bytes) -> bytearray:
     pair_len = 4 + len(value)
     size_field = 8 + pair_len + 8 + 16
     block = u64(size_field) + u64(pair_len) + u32(SIG_ID) + value + u64(size_field) + b"APK Sig Block 42"
-    out = bytearray()
-    out += data[:cd_off]
+    out = bytearray(data[:cd_off])
     out += block
     out += data[cd_off:eocd]
     new_eocd = bytearray(data[eocd:])
@@ -146,10 +153,12 @@ def main() -> None:
     bt = "/workspace/.android-sdk/build-tools/34.0.0/zipalign"
     with tempfile.TemporaryDirectory() as tmp:
         signed = Path(tmp) / "v1.apk"
+        rewritten = Path(tmp) / "v1b.apk"
         aligned = Path(tmp) / "v1a.apk"
         signed.write_bytes(src.read_bytes())
         jarsign(signed)
-        subprocess.check_call([bt, "-f", "4", str(signed), str(aligned)])
+        rewrite_without_descriptors(signed, rewritten)
+        subprocess.check_call([bt, "-f", "4", str(rewritten), str(aligned)])
         raw = bytearray(aligned.read_bytes())
     clear_zip_flags(raw)
     eocd = find_eocd(raw)
@@ -160,17 +169,15 @@ def main() -> None:
     struct.pack_into("<I", eocd_for_digest, 16, cd_off)
     digest = chunked_sha256([before, cd, bytes(eocd_for_digest)])
     key, cert_der, pub_der = export_key_and_cert()
-    # signature covers signed-data content; build it the same way as build_v2_value
     pairs = u32(40) + u32(ALG) + u32(32) + digest
     digests = u32(len(pairs)) + pairs
     certs_inner = u32(len(cert_der)) + cert_der
     certs = u32(len(certs_inner)) + certs_inner
     content = digests + certs + u32(0)
-    signature = sign_digest_block(key, content)
+    signature = sign_content(key, content)
     value = build_v2_value(digest, cert_der, pub_der, signature)
-    out = insert_v2(raw, value)
-    dst.write_bytes(out)
-    print("wrote", dst, len(out))
+    dst.write_bytes(insert_v2(raw, value))
+    print("wrote", dst, dst.stat().st_size)
 
 
 if __name__ == "__main__":
