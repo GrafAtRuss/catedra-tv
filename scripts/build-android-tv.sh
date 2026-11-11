@@ -6,7 +6,7 @@ BT="$SDK/build-tools/34.0.0"
 JAR="$SDK/platforms/android-34/android.jar"
 APP="$ROOT/android-tv"
 OUT="$ROOT/public/downloads"
-VER=1.2.13
+VER=1.2.14
 WORK=/tmp/catedra-apk
 rm -rf "$WORK"
 mkdir -p "$WORK/gen" "$WORK/classes" "$WORK/dex" "$WORK/assets/www" "$OUT"
@@ -23,7 +23,7 @@ cp "$ROOT/tizen-widget/js/app.js" "$WORK/assets/www/js/"
   --java "$WORK/gen" \
   --min-sdk-version 21 \
   --target-sdk-version 34 \
-  --version-code 133 \
+  --version-code 134 \
   --version-name "$VER" \
   -o "$WORK/base.apk" \
   "$WORK/res.zip"
@@ -53,12 +53,21 @@ with zipfile.ZipFile(out, "w") as z:
             z.write(full, rel, compress_type=mode)
 print("zipped", os.path.getsize(out))
 PY
-"$BT/zipalign" -f 4 "$WORK/unsigned.apk" "$WORK/aligned.apk"
+"$BT/zipalign" -f -p 4 "$WORK/unsigned.apk" "$WORK/aligned.apk"
 if [ ! -f "$APP/catedra.keystore" ]; then
   keytool -genkeypair -keystore "$APP/catedra.keystore" -alias catedra -keyalg RSA -keysize 2048 -validity 10000 \
     -storepass catedra-tv -keypass catedra-tv -dname "CN=Catedra, O=Catedra, L=Moscow, C=RU"
 fi
-python3 "$ROOT/scripts/sign-apk-compat.py" "$WORK/aligned.apk" "$OUT/Catedra-TV-$VER.apk"
+"$BT/apksigner" sign \
+  --ks "$APP/catedra.keystore" \
+  --ks-key-alias catedra \
+  --ks-pass pass:catedra-tv \
+  --key-pass pass:catedra-tv \
+  --v1-signing-enabled true \
+  --v2-signing-enabled true \
+  --v3-signing-enabled true \
+  --out "$OUT/Catedra-TV-$VER.apk" \
+  "$WORK/aligned.apk"
 "$BT/apksigner" verify --verbose "$OUT/Catedra-TV-$VER.apk" | head -12
 ls -lh "$OUT/Catedra-TV-$VER.apk"
 rm -f "$OUT/Catedra-TV-$VER.apk.idsig" "$OUT/Catedra-$VER.apk" "$OUT/Catedra-1.2.7.wgt" "$OUT/Catedra-1.2.7.apk" "$OUT/Catedra-Phone-1.2.7.apk"
