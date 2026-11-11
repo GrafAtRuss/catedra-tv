@@ -105,6 +105,7 @@ public class MainActivity extends Activity {
             requestPermissions(new String[]{Manifest.permission.POST_NOTIFICATIONS}, 44);
         }
         Watcher.kick(this);
+        Watcher.allowBackground(this);
     }
 
     @Override

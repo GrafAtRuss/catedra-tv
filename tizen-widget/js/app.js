@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.14";
+var APP_VERSION = "1.2.15";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -874,7 +874,12 @@ function noteAir(on) {
 function back() {
   if (state.full) { setFull(false); return; }
   if (state.screen === "home") {
-    try { tizen.application.getCurrentApplication().exit(); } catch (e) {}
+    try {
+      var current = tizen.application.getCurrentApplication();
+      if (current.hide) current.hide();
+      else current.exit();
+      return;
+    } catch (e) {}
     try { if (window.CatedraNative && window.CatedraNative.exitApp) window.CatedraNative.exitApp(); } catch (e2) {}
     return;
   }
@@ -1109,7 +1114,7 @@ function updateBox() {
     ? '<button class="go" data-tv="1" data-act="install-update">Скачать и установить</button>'
     : '<button class="back" data-tv="1" data-act="check-update">Проверить сейчас</button>';
   return '<section class="box"><h2>Обновление</h2><p class="muted">Версия ' + APP_VERSION + '. Новые сборки берутся из релизов GitHub.</p>' +
-    '<p class="muted">Уведомления: новая версия, начало эфира и новые записи. На телефоне эфир продолжается при заблокированном экране.</p>' +
+    '<p class="muted">Уведомления о новой версии, начале эфира и новых записях приходят и когда приложение закрыто. На телефоне эфир продолжается при заблокированном экране.</p>' +
     '<p class="note">' + esc(u.message || "") + "</p>" + button + "</section>";
 }
 

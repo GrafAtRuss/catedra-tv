@@ -1,12 +1,15 @@
 package ru.catedra.tv;
 
+import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
+import android.net.Uri;
 import android.os.Build;
+import android.os.PowerManager;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.net.HttpURLConnection;
@@ -38,9 +41,30 @@ public final class Watcher {
         int flags = PendingIntent.FLAG_UPDATE_CURRENT;
         if (Build.VERSION.SDK_INT >= 23) flags |= PendingIntent.FLAG_IMMUTABLE;
         PendingIntent pending = PendingIntent.getBroadcast(context, 41, intent, flags);
-        long when = System.currentTimeMillis() + 15 * 60 * 1000L;
-        if (Build.VERSION.SDK_INT >= 23) alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pending);
-        else alarms.set(AlarmManager.RTC_WAKEUP, when, pending);
+        long when = System.currentTimeMillis() + 10 * 60 * 1000L;
+        try {
+            if (Build.VERSION.SDK_INT >= 23) alarms.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pending);
+            else if (Build.VERSION.SDK_INT >= 19) alarms.setExact(AlarmManager.RTC_WAKEUP, when, pending);
+            else alarms.set(AlarmManager.RTC_WAKEUP, when, pending);
+        } catch (Exception ignored) {
+            if (Build.VERSION.SDK_INT >= 23) alarms.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pending);
+            else alarms.set(AlarmManager.RTC_WAKEUP, when, pending);
+        }
+    }
+
+    public static void allowBackground(Activity activity) {
+        if (Build.VERSION.SDK_INT < 23) return;
+        try {
+            PowerManager power = (PowerManager) activity.getSystemService(Context.POWER_SERVICE);
+            if (power != null && power.isIgnoringBatteryOptimizations(activity.getPackageName())) return;
+            SharedPreferences prefs = activity.getSharedPreferences("catedra-alerts", Context.MODE_PRIVATE);
+            if (prefs.getBoolean("asked-battery", false)) return;
+            prefs.edit().putBoolean("asked-battery", true).apply();
+            Intent intent = new Intent(android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS);
+            intent.setData(Uri.parse("package:" + activity.getPackageName()));
+            activity.startActivity(intent);
+        } catch (Exception ignored) {
+        }
     }
 
     static void runCheck(Context context) {
