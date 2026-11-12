@@ -15,8 +15,11 @@ from pathlib import Path
 KS = "/workspace/android-tv/catedra.keystore"
 ALIAS = "catedra"
 STOREPASS = "catedra-tv"
-SIG_ID = 0x7109871A
+SIG_V2 = 0x7109871A
+SIG_V3 = 0xF05368C0
 ALG = 0x0103
+MIN_SDK = 24
+MAX_SDK = 0x7FFFFFFF
 
 
 def u32(n: int) -> bytes:
@@ -70,10 +73,12 @@ def clear_zip_flags(data: bytearray) -> None:
 def rewrite_without_descriptors(src: Path, dst: Path) -> None:
     with zipfile.ZipFile(src) as zin:
         items = [(info, zin.read(info.filename)) for info in zin.infolist()]
+    rank = {"META-INF/MANIFEST.MF": 0, "META-INF/CERT.SF": 1, "META-INF/CERT.RSA": 2}
+    items.sort(key=lambda it: (rank.get(it[0].filename, 10), it[0].filename))
     with zipfile.ZipFile(dst, "w") as zout:
         for info, data in items:
             out = zipfile.ZipInfo(filename=info.filename, date_time=info.date_time)
-            out.compress_type = info.compress_type
+            out.compress_type = zipfile.ZIP_STORED if info.filename.startswith("META-INF/") else info.compress_type
             out.create_system = 0
             out.external_attr = 0
             out.flag_bits = 0
@@ -97,25 +102,42 @@ def sign_content(key, content: bytes) -> bytes:
 
 
 def build_v2_value(digest: bytes, cert_der: bytes, pub_der: bytes, signature: bytes) -> bytes:
+    return _signer_value(digest, cert_der, pub_der, signature, v3=False)
+
+
+def build_v3_value(digest: bytes, cert_der: bytes, pub_der: bytes, signature: bytes) -> bytes:
+    return _signer_value(digest, cert_der, pub_der, signature, v3=True)
+
+
+def _signer_value(digest: bytes, cert_der: bytes, pub_der: bytes, signature: bytes, v3: bool) -> bytes:
     pairs = u32(40) + u32(ALG) + u32(32) + digest
     digests = u32(len(pairs)) + pairs
     certs_inner = u32(len(cert_der)) + cert_der
     certs = u32(len(certs_inner)) + certs_inner
-    content = digests + certs + u32(0)
+    content = digests + certs
+    if v3:
+        content += u32(MIN_SDK) + u32(MAX_SDK)
+    content += u32(0)
     sig_inner = u32(ALG) + u32(len(signature)) + signature
     sigs = u32(len(sig_inner)) + sig_inner
     pub = u32(len(pub_der)) + pub_der
-    signer_body = u32(len(content)) + content + u32(len(sigs)) + sigs + pub
+    signer_body = u32(len(content)) + content
+    if v3:
+        signer_body += u32(MIN_SDK) + u32(MAX_SDK)
+    signer_body += u32(len(sigs)) + sigs + pub
     signer = u32(len(signer_body)) + signer_body
     return u32(len(signer)) + signer
 
 
-def insert_v2(data: bytearray, value: bytes) -> bytearray:
+def insert_schemes(data: bytearray, pairs: list[tuple[int, bytes]]) -> bytearray:
     eocd = find_eocd(data)
     cd_off = struct.unpack_from("<I", data, eocd + 16)[0]
-    pair_len = 4 + len(value)
-    size_field = 8 + pair_len + 8 + 16
-    block = u64(size_field) + u64(pair_len) + u32(SIG_ID) + value + u64(size_field) + b"APK Sig Block 42"
+    body = b""
+    for ident, value in pairs:
+        pair_len = 4 + len(value)
+        body += u64(pair_len) + u32(ident) + value
+    size_field = len(body) + 8 + 16
+    block = u64(size_field) + body + u64(size_field) + b"APK Sig Block 42"
     out = bytearray(data[:cd_off])
     out += block
     out += data[cd_off:eocd]
@@ -175,8 +197,10 @@ def main() -> None:
     certs = u32(len(certs_inner)) + certs_inner
     content = digests + certs + u32(0)
     signature = sign_content(key, content)
-    value = build_v2_value(digest, cert_der, pub_der, signature)
-    dst.write_bytes(insert_v2(raw, value))
+    v2 = build_v2_value(digest, cert_der, pub_der, signature)
+    v3_content = digests + certs + u32(MIN_SDK) + u32(MAX_SDK) + u32(0)
+    v3 = build_v3_value(digest, cert_der, pub_der, sign_content(key, v3_content))
+    dst.write_bytes(insert_schemes(raw, [(SIG_V2, v2), (SIG_V3, v3)]))
     print("wrote", dst, dst.stat().st_size)
 
 
