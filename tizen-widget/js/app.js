@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.19";
+var APP_VERSION = "1.2.20";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -405,15 +405,15 @@ function scheduleHtml() {
       (items[i].end ? '<span class="note">до ' + esc(items[i].end) + "</span>" : "") +
       (items[i].note ? '<span class="note">' + esc(items[i].note) + "</span>" : "") + "</div></div>";
   }
-  return '<h1 class="page-title">Расписание</h1><p class="muted">' + esc(state.notice) + '</p>' +
-    '<div style="margin:16px 0"><button class="go" data-tv="1" data-act="go" data-arg="live">Открыть эфир</button></div>' +
-    '<div class="tabs rites">' + tabs + "</div><div class=\"tabs\">" + days + '</div><div class="card list">' + list + "</div>";
+  return '<div class="sheet"><div class="sheet-head"><h1 class="page-title">Расписание</h1><button class="go" data-tv="1" data-act="go" data-arg="live">Открыть эфир</button></div>' +
+    '<p class="muted sheet-note">' + esc(state.notice) + '</p>' +
+    '<div class="tabs rites">' + tabs + '</div><div class="tabs">' + days + '</div><div class="card list">' + list + "</div></div>";
 }
 
 function archiveHtml() {
-  var html = '<h1 class="page-title">Записи</h1><p class="muted">' + esc(state.channelTitle) +
-    (state.recHost === "rutube" ? " · Рутуб" : " · YouTube") + "</p>";
-  if (state.recHost === "rutube") html += '<p class="note">Это архив прихода на Рутубе. Свежие мессы после 13 июля 2025 есть только на YouTube.</p>';
+  var html = '<div class="sheet"><div class="sheet-head"><h1 class="page-title">Записи</h1><p class="muted">' + esc(state.channelTitle) +
+    (state.recHost === "rutube" ? " · Рутуб" : " · YouTube") + "</p></div>";
+  if (state.recHost === "rutube") html += '<p class="sheet-note">Архив на Рутубе, последняя запись 13 июля 2025. Более новые мессы есть на YouTube.</p>';
   if (state.recError) html += '<div class="box"><p>' + esc(state.recError) + '</p><button class="go" data-tv="1" data-act="reload-rec">Повторить</button></div>';
   if (!state.recordings.length && !state.recError) html += '<p class="muted">Загрузка…</p>';
   html += '<div class="grid">';
@@ -424,7 +424,7 @@ function archiveHtml() {
       (it.thumb ? '<img alt="" src="' + esc(it.thumb) + '">' : "") +
       "<span><b>" + esc(it.title) + '</b><span class="note">' + esc(it.when || "") + "</span></span></button>";
   }
-  html += "</div>";
+  html += "</div></div>";
   return html;
 }
 
@@ -505,7 +505,7 @@ function field(label, id, value, placeholder) {
 function settingsHtml() {
   var s = state.settings;
   var sample = applyProxy(RSS);
-  return '<h1 class="page-title">Настройки</h1><p class="muted">Сохраняются в памяти устройства.</p>' +
+  return '<div class="sheet settings"><div class="sheet-head"><h1 class="page-title">Настройки</h1><p class="muted">Сохраняются в памяти устройства.</p></div>' +
     updateBox() +
     '<section class="box"><button class="switch ' + (s.proxyOn ? "on" : "") + '" data-tv="1" data-act="toggle-proxy">' + (s.proxyOn ? "Прокси включён" : "Прокси выключен") + "</button>" +
     "<h2>Прокси</h2><p class=\"muted\">Если YouTube или поток с телевизора не открываются.</p><div style=\"clear:both\"></div>" +
@@ -530,7 +530,7 @@ function settingsHtml() {
     '<p>Автор — Ермаков Алексей Сергеевич</p>' +
     '<p class="warn">alexey@ermakov-mail.ru</p>' +
     '<p class="muted">Версия ' + APP_VERSION + '</p><div style="clear:both"></div></section>' +
-    '<button class="back" data-tv="1" data-act="reset">Сбросить настройки</button>';
+    '<button class="back" data-tv="1" data-act="reset">Сбросить настройки</button></div>';
 }
 
 function currentHls() {
