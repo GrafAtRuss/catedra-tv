@@ -6,7 +6,7 @@ BT="$SDK/build-tools/34.0.0"
 JAR="$SDK/platforms/android-34/android.jar"
 APP="$ROOT/android-phone"
 OUT="$ROOT/public/downloads"
-VER=1.2.23
+VER=1.2.24
 WORK=/tmp/catedra-phone-apk
 rm -rf "$WORK"
 mkdir -p "$WORK/gen" "$WORK/classes" "$WORK/dex" "$WORK/assets/www" "$OUT"
@@ -23,7 +23,7 @@ cp "$ROOT/tizen-widget/js/app.js" "$WORK/assets/www/js/"
   --java "$WORK/gen" \
   --min-sdk-version 21 \
   --target-sdk-version 34 \
-  --version-code 143 \
+  --version-code 144 \
   --version-name "$VER" \
   -o "$WORK/base.apk" \
   "$WORK/res.zip"
@@ -54,7 +54,18 @@ with zipfile.ZipFile(out, "w") as z:
 print("zipped", os.path.getsize(out))
 PY
 "$BT/zipalign" -f -p 4 "$WORK/unsigned.apk" "$WORK/aligned.apk"
-python3 "$ROOT/scripts/sign-apk-compat.py" "$WORK/aligned.apk" "$OUT/Catedra-Phone-$VER.apk"
+"$BT/apksigner" sign \
+  --ks "$ROOT/android-tv/catedra.keystore" \
+  --ks-key-alias catedra \
+  --ks-pass pass:catedra-tv \
+  --key-pass pass:catedra-tv \
+  --v1-signing-enabled true \
+  --v2-signing-enabled true \
+  --v3-signing-enabled true \
+  --v1-signer-name CERT \
+  --out "$OUT/Catedra-Phone-$VER.apk" \
+  "$WORK/aligned.apk"
 "$BT/apksigner" verify --verbose "$OUT/Catedra-Phone-$VER.apk" | head -12
 "$BT/aapt" dump badging "$OUT/Catedra-Phone-$VER.apk" | head -8
+rm -f "$OUT/Catedra-Phone-$VER.apk.idsig"
 ls -lh "$OUT/Catedra-Phone-$VER.apk"
