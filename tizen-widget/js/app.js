@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.17";
+var APP_VERSION = "1.2.18";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -332,7 +332,7 @@ function shell(body) {
       '<div class="titles"><div class="brand">Кафедра <span class="ver">' + APP_VERSION + '</span></div><div class="sub">Римско-католический кафедральный собор Непорочного Зачатия Пресвятой Девы Марии в Москве</div></div>' +
       '<div class="clock"><b>' + esc(a.clock.label) + '</b><span>МСК · ' + esc(a.clock.name) + "</span></div>" +
     "</header>" +
-    '<div class="main">' + body + "</div>" +
+    '<div class="main"><div class="fit' + (state.screen === "live" || state.screen === "watch" ? " fill" : "") + '">' + body + "</div></div>" +
     '<nav class="nav">' + navHtml + "</nav>"
   );
 }
@@ -639,6 +639,30 @@ function render() {
   if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
   syncPlane();
   syncNative();
+  fitTv();
+}
+
+function fitTv() {
+  var root = document.documentElement;
+  if (root.className.indexOf("tv") < 0) return;
+  var main = document.querySelector(".main");
+  var fit = main ? main.querySelector(".fit") : null;
+  if (!main || !fit) return;
+  fit.style.webkitTransform = "none";
+  fit.style.transform = "none";
+  fit.style.width = "100%";
+  if (state.full || fit.className.indexOf("fill") >= 0) return;
+  var avail = main.clientHeight;
+  var need = fit.scrollHeight;
+  if (!(avail > 0) || !(need > avail + 1)) return;
+  var z = (avail - 4) / need;
+  if (z > 1) z = 1;
+  if (!(z > 0)) return;
+  fit.style.width = (100 / z) + "%";
+  fit.style.webkitTransformOrigin = "left top";
+  fit.style.transformOrigin = "left top";
+  fit.style.webkitTransform = "scale(" + z + ")";
+  fit.style.transform = "scale(" + z + ")";
 }
 
 function bindInputs() {
@@ -1317,6 +1341,7 @@ function init() {
   setTimeout(hideSplash, 1600);
   setTimeout(checkUpdate, 2500);
   document.addEventListener("visibilitychange", keepLockedPlayback);
+  window.addEventListener("resize", fitTv);
   setInterval(function () {
     if (state.screen === "home") render();
     loadStream();

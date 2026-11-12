@@ -108,21 +108,21 @@ html.tv .titles { padding-right: 24px; }
 html.tv .brand { font-size: 40px; }
 html.tv .sub { max-width: none; font-size: 18px; line-height: 1.25; }
 html.tv .clock b { font-size: 42px; }
-html.tv .main { height: 1px; -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; padding: 12px 40px 16px; overflow-x: hidden; overflow-y: auto; }
-html.tv #app.home .main { overflow: hidden; display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; }
-html.tv #app.home .row { -webkit-flex: 1 1 auto; flex: 1 1 auto; height: 1px; min-height: 0; }
+html.tv .main { height: 1px; -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; padding: 12px 40px 16px; overflow: hidden; }
+html.tv .fit.fill { height: 100%; }
+html.tv #app.home .main { overflow: hidden; }
+html.tv #app.home .row { height: auto; min-height: 0; -webkit-align-items: stretch; align-items: stretch; }
 html.tv #app.home .home-extra { display: none; }
-html.tv .hero { display: block; width: 62%; height: 100%; min-height: 0; margin-right: 16px; padding: 0; }
+html.tv .hero { display: block; width: 62%; height: auto; min-height: 280px; margin-right: 16px; padding: 0; }
 html.tv .hero .inn { position: absolute; left: 24px; right: 24px; bottom: 22px; }
 html.tv .hero h1 { margin-top: 6px; font-size: 46px; }
 html.tv .lead { font-size: 20px; }
-html.tv .side { display: -webkit-flex; display: flex; -webkit-flex-direction: column; flex-direction: column; width: 38%; height: 100%; min-height: 0; overflow: hidden; padding: 16px 18px 14px; }
-html.tv .side-now { -webkit-flex: 0 0 auto; flex: 0 0 auto; }
+html.tv .side { display: block; width: 38%; height: auto; min-height: 0; overflow: visible; padding: 16px 18px 14px; }
 html.tv .side h2 { font-size: 28px; line-height: 1.15; margin: 2px 0 0; }
 html.tv .now-time { font-size: 36px; }
-html.tv .side .chips { -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; margin-top: 10px; overflow-x: hidden; overflow-y: auto; }
+html.tv .side .chips { margin-top: 10px; overflow: visible; }
 html.tv .side .chips button { display: block; width: 100%; margin: 0 0 8px; padding: 8px 14px; font-size: 20px; text-align: center; }
-html.tv .side-note { -webkit-flex: 0 0 auto; flex: 0 0 auto; margin: 8px 0 0; font-size: 16px; line-height: 1.3; }
+html.tv .side-note { margin: 8px 0 0; font-size: 16px; line-height: 1.3; }
 html.tv .nav button { height: 78px; font-size: 22px; }
 html.tv button:focus { outline: none; -webkit-box-shadow: inset 0 0 0 3px #e6d3a1; box-shadow: inset 0 0 0 3px #e6d3a1; }
 html.tv .hero .shade { opacity: 1; background: -webkit-linear-gradient(top, rgba(16, 8, 10, 0.12) 30%, rgba(16, 8, 10, 0.82)); background: linear-gradient(to bottom, rgba(16, 8, 10, 0.12) 30%, rgba(16, 8, 10, 0.82)); }
@@ -134,7 +134,8 @@ html.tv .offline h2 { font-size: 36px; }
 html.tv .page-title { font-size: 36px; }
 html.tv .card.list { display: -webkit-flex; display: flex; -webkit-flex-wrap: wrap; flex-wrap: wrap; }
 html.tv .card.list .svc { width: 50%; -webkit-box-sizing: border-box; box-sizing: border-box; }
-html.tv .tile img { height: 140px; }
+html.tv .tile { width: 23%; margin: 0 1% 10px 0; }
+html.tv .tile img { height: 100px; }
 html.tv .box, html.tv .today, html.tv .step { overflow: visible; }
 
 @media (max-width: 900px) {
@@ -191,7 +192,7 @@ html.tv .box, html.tv .today, html.tv .step { overflow: visible; }
   html.tv .side { width: 38%; margin-bottom: 0; }
   html.tv .offline { min-height: 0; height: 100%; }
   html.tv .stage { min-height: 0; }
-  html.tv .tile { width: 31%; }
-  html.tv .tile img { height: 140px; }
+  html.tv .tile { width: 23%; }
+  html.tv .tile img { height: 100px; }
 }
 
