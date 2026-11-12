@@ -147,24 +147,31 @@ def insert_schemes(data: bytearray, pairs: list[tuple[int, bytes]]) -> bytearray
     return out
 
 
-def jarsign(apk: Path) -> None:
+def jarsign(src: Path, dst: Path) -> None:
+    apk = "/workspace/.android-sdk/build-tools/34.0.0/apksigner"
     subprocess.check_call(
         [
-            "jarsigner",
-            "-sigalg",
-            "SHA256withRSA",
-            "-digestalg",
-            "SHA-256",
-            "-sigfile",
-            "CERT",
-            "-keystore",
+            apk,
+            "sign",
+            "--ks",
             KS,
-            "-storepass",
-            STOREPASS,
-            "-keypass",
-            STOREPASS,
-            str(apk),
+            "--ks-key-alias",
             ALIAS,
+            "--ks-pass",
+            "pass:" + STOREPASS,
+            "--key-pass",
+            "pass:" + STOREPASS,
+            "--v1-signing-enabled",
+            "true",
+            "--v2-signing-enabled",
+            "true",
+            "--v3-signing-enabled",
+            "true",
+            "--v1-signer-name",
+            "CERT",
+            "--out",
+            str(dst),
+            str(src),
         ]
     )
 
@@ -177,10 +184,9 @@ def main() -> None:
         signed = Path(tmp) / "v1.apk"
         rewritten = Path(tmp) / "v1b.apk"
         aligned = Path(tmp) / "v1a.apk"
-        signed.write_bytes(src.read_bytes())
-        jarsign(signed)
+        jarsign(src, signed)
         rewrite_without_descriptors(signed, rewritten)
-        subprocess.check_call([bt, "-f", "4", str(rewritten), str(aligned)])
+        subprocess.check_call([bt, "-f", "-p", "4", str(rewritten), str(aligned)])
         raw = bytearray(aligned.read_bytes())
     clear_zip_flags(raw)
     eocd = find_eocd(raw)
