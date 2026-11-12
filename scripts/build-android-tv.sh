@@ -6,7 +6,7 @@ BT="$SDK/build-tools/34.0.0"
 JAR="$SDK/platforms/android-34/android.jar"
 APP="$ROOT/android-tv"
 OUT="$ROOT/public/downloads"
-VER=1.2.16
+VER=1.2.17
 WORK=/tmp/catedra-apk
 rm -rf "$WORK"
 mkdir -p "$WORK/gen" "$WORK/classes" "$WORK/dex" "$WORK/assets/www" "$OUT"
@@ -23,7 +23,7 @@ cp "$ROOT/tizen-widget/js/app.js" "$WORK/assets/www/js/"
   --java "$WORK/gen" \
   --min-sdk-version 21 \
   --target-sdk-version 34 \
-  --version-code 136 \
+  --version-code 137 \
   --version-name "$VER" \
   -o "$WORK/base.apk" \
   "$WORK/res.zip"

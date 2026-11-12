@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.16";
+var APP_VERSION = "1.2.17";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -369,9 +369,9 @@ function homeHtml() {
         '<div class="inn"><span class="pill">ПРЯМОЙ ЭФИР</span><h1>Святая Месса</h1>' +
         '<div class="lead">Трансляция с catedra.ru/online через Kinescope.</div>' +
         '<span class="go">Смотреть</span></div></button>' +
-      '<section class="card side"><div class="kicker">Расписание · МСК</div>' + now + next +
-        '<div class="chips">' + rites + "</div>" +
-        '<p class="muted">' + esc(state.notice) + "</p></section></div>" +
+      '<section class="card side"><div class="side-now"><div class="kicker">Расписание · МСК</div>' + now + next +
+        '</div><div class="chips">' + rites + "</div>" +
+        '<p class="muted side-note">' + esc(state.notice) + "</p></section></div>" +
     '<div class="home-extra">' +
     '<section class="card today"><h2>Сегодня</h2>' + today + "</section>" +
     '<section class="card today"><h2>Записи</h2><div class="grid">' + clips + "</div></section>" +
@@ -405,13 +405,13 @@ function scheduleHtml() {
       (items[i].end ? '<span class="note">до ' + esc(items[i].end) + "</span>" : "") +
       (items[i].note ? '<span class="note">' + esc(items[i].note) + "</span>" : "") + "</div></div>";
   }
-  return '<h1 style="font-size:48px">Расписание</h1><p class="muted">' + esc(state.notice) + '</p>' +
+  return '<h1 class="page-title">Расписание</h1><p class="muted">' + esc(state.notice) + '</p>' +
     '<div style="margin:16px 0"><button class="go" data-tv="1" data-act="go" data-arg="live">Открыть эфир</button></div>' +
     '<div class="tabs rites">' + tabs + "</div><div class=\"tabs\">" + days + '</div><div class="card list">' + list + "</div>";
 }
 
 function archiveHtml() {
-  var html = "<h1 style=\"font-size:48px\">Записи</h1><p class=\"muted\">" + esc(state.channelTitle) +
+  var html = '<h1 class="page-title">Записи</h1><p class="muted">' + esc(state.channelTitle) +
     (state.recHost === "rutube" ? " · Рутуб" : " · YouTube") + "</p>";
   if (state.recHost === "rutube") html += '<p class="note">Это архив прихода на Рутубе. Свежие мессы после 13 июля 2025 есть только на YouTube.</p>';
   if (state.recError) html += '<div class="box"><p>' + esc(state.recError) + '</p><button class="go" data-tv="1" data-act="reload-rec">Повторить</button></div>';
@@ -505,7 +505,7 @@ function field(label, id, value, placeholder) {
 function settingsHtml() {
   var s = state.settings;
   var sample = applyProxy(RSS);
-  return '<h1 style="font-size:48px">Настройки</h1><p class="muted">Сохраняются в памяти устройства.</p>' +
+  return '<h1 class="page-title">Настройки</h1><p class="muted">Сохраняются в памяти устройства.</p>' +
     updateBox() +
     '<section class="box"><button class="switch ' + (s.proxyOn ? "on" : "") + '" data-tv="1" data-act="toggle-proxy">' + (s.proxyOn ? "Прокси включён" : "Прокси выключен") + "</button>" +
     "<h2>Прокси</h2><p class=\"muted\">Если YouTube или поток с телевизора не открываются.</p><div style=\"clear:both\"></div>" +
