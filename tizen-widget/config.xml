@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://catedra.ru/tv" version="1.2.18" viewmodes="maximized">
+<widget xmlns="http://www.w3.org/ns/widgets" xmlns:tizen="http://tizen.org/ns/widgets" id="http://catedra.ru/tv" version="1.2.19" viewmodes="maximized">
   <access origin="*" subdomains="true"/>
   <tizen:application id="CatedraTV1.Catedra" package="CatedraTV1" required_version="4.0"/>
   <content src="index.html"/>

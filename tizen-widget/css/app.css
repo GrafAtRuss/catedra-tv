@@ -108,7 +108,7 @@ html.tv .titles { padding-right: 24px; }
 html.tv .brand { font-size: 40px; }
 html.tv .sub { max-width: none; font-size: 18px; line-height: 1.25; }
 html.tv .clock b { font-size: 42px; }
-html.tv .main { height: 1px; -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; padding: 12px 40px 16px; overflow: hidden; }
+html.tv .main { height: 1px; -webkit-flex: 1 1 auto; flex: 1 1 auto; min-height: 0; padding: 12px 40px 16px; overflow-x: hidden; overflow-y: auto; }
 html.tv .fit.fill { height: 100%; }
 html.tv #app.home .main { overflow: hidden; }
 html.tv #app.home .row { height: auto; min-height: 0; -webkit-align-items: stretch; align-items: stretch; }

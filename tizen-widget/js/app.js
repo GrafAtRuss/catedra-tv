@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.18";
+var APP_VERSION = "1.2.19";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -639,30 +639,6 @@ function render() {
   if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
   syncPlane();
   syncNative();
-  fitTv();
-}
-
-function fitTv() {
-  var root = document.documentElement;
-  if (root.className.indexOf("tv") < 0) return;
-  var main = document.querySelector(".main");
-  var fit = main ? main.querySelector(".fit") : null;
-  if (!main || !fit) return;
-  fit.style.webkitTransform = "none";
-  fit.style.transform = "none";
-  fit.style.width = "100%";
-  if (state.full || fit.className.indexOf("fill") >= 0) return;
-  var avail = main.clientHeight;
-  var need = fit.scrollHeight;
-  if (!(avail > 0) || !(need > avail + 1)) return;
-  var z = (avail - 4) / need;
-  if (z > 1) z = 1;
-  if (!(z > 0)) return;
-  fit.style.width = (100 / z) + "%";
-  fit.style.webkitTransformOrigin = "left top";
-  fit.style.transformOrigin = "left top";
-  fit.style.webkitTransform = "scale(" + z + ")";
-  fit.style.transform = "scale(" + z + ")";
 }
 
 function bindInputs() {
@@ -917,15 +893,28 @@ function back() {
   render();
 }
 
+function boxOf(el) {
+  return el.getBoundingClientRect();
+}
+
 function focusables() {
   var all = document.querySelectorAll("[data-tv]");
   var out = [];
   var i;
   for (i = 0; i < all.length; i++) {
-    var r = all[i].getBoundingClientRect();
-    if (r.width > 0 && r.height > 0) out.push(all[i]);
+    var r = boxOf(all[i]);
+    if (r.width > 2 && r.height > 2) out.push(all[i]);
   }
   return out;
+}
+
+function reveal(el) {
+  var main = document.querySelector(".main");
+  if (!main || !el) return;
+  var mr = main.getBoundingClientRect();
+  var r = boxOf(el);
+  if (r.top < mr.top + 8) main.scrollTop -= mr.top - r.top + 16;
+  else if (r.bottom > mr.bottom - 8) main.scrollTop += r.bottom - mr.bottom + 16;
 }
 
 function moveFocus(dir) {
@@ -934,32 +923,66 @@ function moveFocus(dir) {
   if (!items.length) return;
   if (!cur || !cur.getAttribute || !cur.getAttribute("data-tv")) {
     items[0].focus();
+    reveal(items[0]);
     return;
   }
-  var cr = cur.getBoundingClientRect();
-  var cx = cr.left + cr.width / 2;
-  var cy = cr.top + cr.height / 2;
+  var cr = boxOf(cur);
   var best = null;
   var bestScore = 1e9;
   var i;
   for (i = 0; i < items.length; i++) {
-    if (items[i] === cur) continue;
-    var r = items[i].getBoundingClientRect();
-    var dx = r.left + r.width / 2 - cx;
-    var dy = r.top + r.height / 2 - cy;
-    if (dir === "left" && dx >= -4) continue;
-    if (dir === "right" && dx <= 4) continue;
-    if (dir === "up" && dy >= -4) continue;
-    if (dir === "down" && dy <= 4) continue;
-    var primary = dir === "left" || dir === "right" ? Math.abs(dx) : Math.abs(dy);
-    var secondary = dir === "left" || dir === "right" ? Math.abs(dy) : Math.abs(dx);
-    var score = primary + secondary * 2.4;
-    if (score < bestScore) { bestScore = score; best = items[i]; }
+    var el = items[i];
+    if (el === cur) continue;
+    var r = boxOf(el);
+    var horiz = dir === "left" || dir === "right";
+    if (horiz) {
+      if (dir === "left" && r.right > cr.left + 8) continue;
+      if (dir === "right" && r.left < cr.right - 8) continue;
+    } else {
+      if (dir === "up" && r.bottom > cr.top + 8) continue;
+      if (dir === "down" && r.top < cr.bottom - 8) continue;
+    }
+    var overlap = horiz
+      ? Math.min(cr.bottom, r.bottom) - Math.max(cr.top, r.top)
+      : Math.min(cr.right, r.right) - Math.max(cr.left, r.left);
+    var dx = Math.abs((r.left + r.width / 2) - (cr.left + cr.width / 2));
+    var dy = Math.abs((r.top + r.height / 2) - (cr.top + cr.height / 2));
+    var score = (horiz ? dx : dy) + (overlap > 0 ? 0 : (horiz ? dy : dx) * 3);
+    if (score < bestScore) { bestScore = score; best = el; }
+  }
+  if (!best) {
+    var list = items.slice(0).sort(function (a, b) {
+      var ra = boxOf(a);
+      var rb = boxOf(b);
+      if (Math.abs(ra.top - rb.top) > 24) return ra.top - rb.top;
+      return ra.left - rb.left;
+    });
+    var at = list.indexOf ? list.indexOf(cur) : -1;
+    if (at < 0) {
+      for (i = 0; i < list.length; i++) if (list[i] === cur) at = i;
+    }
+    if (at >= 0 && (dir === "down" || dir === "right") && at + 1 < list.length) best = list[at + 1];
+    if (at >= 0 && (dir === "up" || dir === "left") && at > 0) best = list[at - 1];
   }
   if (best) {
     best.focus();
-    try { best.scrollIntoView(true); } catch (e) {}
+    reveal(best);
   }
+}
+
+function keyDir(e) {
+  var name = e.key || "";
+  if (name === "ArrowLeft") return "left";
+  if (name === "ArrowRight") return "right";
+  if (name === "ArrowUp") return "up";
+  if (name === "ArrowDown") return "down";
+  var code = e.keyCode;
+  if (code === 37 || code === 21) return "left";
+  if (code === 39 || code === 22) return "right";
+  if (code === 38) return "up";
+  if (code === 40 || code === 20) return "down";
+  if (code === 19 && !window.tizen) return "up";
+  return "";
 }
 
 function onKey(e) {
@@ -978,12 +1001,24 @@ function onKey(e) {
     if (state.screen === "live" || state.screen === "watch") { e.preventDefault(); setFull(!state.full); }
     return;
   }
-  if (code === 10009 || code === 461 || code === 8 || code === 27) { e.preventDefault(); back(); return; }
-  if (code === 37) { e.preventDefault(); moveFocus("left"); }
-  else if (code === 39) { e.preventDefault(); moveFocus("right"); }
-  else if (code === 38) { e.preventDefault(); moveFocus("up"); }
-  else if (code === 40) { e.preventDefault(); moveFocus("down"); }
-  else if (code === 415 || code === 10252 || code === 19) {
+  if (code === 10009 || code === 461 || code === 8 || code === 27) { e.preventDefault(); e.stopPropagation(); back(); return; }
+  if (code === 13 || code === 23) {
+    var el = document.activeElement;
+    if (el && el.getAttribute && el.getAttribute("data-tv")) {
+      e.preventDefault();
+      e.stopPropagation();
+      el.click();
+    }
+    return;
+  }
+  var dir = keyDir(e);
+  if (dir) {
+    e.preventDefault();
+    e.stopPropagation();
+    moveFocus(dir);
+    return;
+  }
+  if (code === 415 || code === 10252 || (code === 19 && window.tizen)) {
     try {
       if (window.webapis && webapis.avplay) {
         if (code === 19) webapis.avplay.pause();
@@ -1323,7 +1358,7 @@ function init() {
   markShell();
   loadSettings();
   registerKeys();
-  document.addEventListener("keydown", onKey);
+  document.addEventListener("keydown", onKey, true);
   document.getElementById("app").addEventListener("click", function (e) {
     var t = e.target;
     while (t && t !== document.getElementById("app")) {
@@ -1341,9 +1376,12 @@ function init() {
   setTimeout(hideSplash, 1600);
   setTimeout(checkUpdate, 2500);
   document.addEventListener("visibilitychange", keepLockedPlayback);
-  window.addEventListener("resize", fitTv);
   setInterval(function () {
-    if (state.screen === "home") render();
+    var a = agenda();
+    var clock = document.querySelector(".clock b");
+    var day = document.querySelector(".clock span");
+    if (clock) clock.textContent = a.clock.label;
+    if (day) day.textContent = "МСК · " + a.clock.name;
     loadStream();
   }, 60000);
 }
