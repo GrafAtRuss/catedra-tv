@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.20";
+var APP_VERSION = "1.2.21";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -639,6 +639,27 @@ function render() {
   if (state.screen === "live" && (state.onAir === true || state.forceLive)) startLive();
   syncPlane();
   syncNative();
+  fitTv();
+}
+
+function fitTv() {
+  var root = document.documentElement;
+  if (root.className.indexOf("tv") < 0) return;
+  var main = document.querySelector(".main");
+  var fit = main ? main.querySelector(".fit") : null;
+  if (!main || !fit) return;
+  fit.style.zoom = "1";
+  if (state.full || state.screen === "live" || state.screen === "watch") return;
+  var availH = main.clientHeight;
+  var availW = main.clientWidth;
+  var needH = fit.offsetHeight;
+  var needW = fit.offsetWidth;
+  if (!(availH > 20) || !(needH > 20)) return;
+  var z = 1;
+  if (needH > availH) z = availH / needH;
+  if (needW > availW && availW / needW < z) z = availW / needW;
+  if (z < 0.2) z = 0.2;
+  if (z < 0.995) fit.style.zoom = String(Math.round(z * 1000) / 1000);
 }
 
 function bindInputs() {
@@ -1376,6 +1397,7 @@ function init() {
   setTimeout(hideSplash, 1600);
   setTimeout(checkUpdate, 2500);
   document.addEventListener("visibilitychange", keepLockedPlayback);
+  window.addEventListener("resize", fitTv);
   setInterval(function () {
     var a = agenda();
     var clock = document.querySelector(".clock b");
