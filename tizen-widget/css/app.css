@@ -145,10 +145,12 @@ html.tv .card.list .svc { width: 50%; -webkit-flex: 0 0 50%; flex: 0 0 50%; over
 html.tv .card.list .tm { font-size: 20px; width: 72px; }
 html.tv .card.list .note { font-size: 14px; }
 html.tv .sheet.settings .box { display: inline-block; vertical-align: top; width: 48%; height: auto; overflow: visible; margin: 0 1% 12px 0; -webkit-box-sizing: border-box; box-sizing: border-box; }
-html.tv .grid { height: auto; overflow: visible; display: block; }
-html.tv .tile { float: left; width: 23%; height: auto; margin: 0 1% 10px 0; display: block; }
-html.tv .tile img { width: 100%; height: 120px; object-fit: cover; display: block; }
-html.tv .tile span { padding: 6px 8px 8px; font-size: 16px; }
+html.tv .grid { position: relative; height: auto; overflow: hidden; display: block; }
+html.tv .tile { position: absolute; float: none; margin: 0; overflow: hidden; display: block; width: auto; height: auto; }
+html.tv .tile img { position: absolute; left: 0; top: 0; width: 100%; height: 58%; object-fit: cover; display: block; }
+html.tv .tile span { position: absolute; left: 0; right: 0; top: 58%; bottom: 0; overflow: hidden; padding: 6px 10px 8px; font-size: 16px; }
+html.tv .tile b { display: block; height: 2.4em; overflow: hidden; line-height: 1.2; font-weight: normal; }
+html.tv .tile .note { display: block; margin-top: 2px; white-space: nowrap; overflow: hidden; }
 
 @media (max-width: 900px) {
   body { font-size: 16px; }
@@ -204,7 +206,7 @@ html.tv .tile span { padding: 6px 8px 8px; font-size: 16px; }
   html.tv .side { width: 38%; margin-bottom: 0; }
   html.tv .offline { min-height: 0; height: 100%; }
   html.tv .stage { min-height: 0; }
-  html.tv .tile { width: 23%; }
-  html.tv .tile img { height: 120px; }
+  html.tv .tile { width: auto; }
+  html.tv .tile img { height: 58%; }
 }
 

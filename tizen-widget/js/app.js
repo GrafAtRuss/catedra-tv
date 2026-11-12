@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.21";
+var APP_VERSION = "1.2.22";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -650,6 +650,7 @@ function fitTv() {
   if (!main || !fit) return;
   fit.style.zoom = "1";
   if (state.full || state.screen === "live" || state.screen === "watch") return;
+  if (state.screen === "archive") { layoutArchive(); return; }
   var availH = main.clientHeight;
   var availW = main.clientWidth;
   var needH = fit.offsetHeight;
@@ -660,6 +661,41 @@ function fitTv() {
   if (needW > availW && availW / needW < z) z = availW / needW;
   if (z < 0.2) z = 0.2;
   if (z < 0.995) fit.style.zoom = String(Math.round(z * 1000) / 1000);
+}
+
+function layoutArchive() {
+  var main = document.querySelector(".main");
+  var grid = document.querySelector(".grid");
+  if (!main || !grid) return;
+  var tiles = grid.querySelectorAll(".tile");
+  var n = tiles.length;
+  var head = document.querySelector(".sheet-head");
+  var note = document.querySelector(".sheet-note");
+  var used = 8 + (head ? head.offsetHeight : 0) + (note ? note.offsetHeight : 0);
+  var availH = main.clientHeight - used;
+  var availW = main.clientWidth - 4;
+  if (!(availH > 80) || !(availW > 80)) return;
+  var cols = n < 4 ? (n || 1) : 4;
+  var rows = Math.ceil(n / cols) || 1;
+  while (rows > 2 && cols < 6 && availH / rows < 150) {
+    cols += 1;
+    rows = Math.ceil(n / cols);
+  }
+  var gap = 14;
+  var tw = Math.floor((availW - gap * (cols - 1)) / cols);
+  var th = Math.floor((availH - gap * (rows - 1)) / rows);
+  if (tw < 40 || th < 40) return;
+  grid.style.position = "relative";
+  grid.style.height = availH + "px";
+  grid.style.width = "100%";
+  var i;
+  for (i = 0; i < n; i++) {
+    var t = tiles[i];
+    t.style.left = ((i % cols) * (tw + gap)) + "px";
+    t.style.top = (Math.floor(i / cols) * (th + gap)) + "px";
+    t.style.width = tw + "px";
+    t.style.height = th + "px";
+  }
 }
 
 function bindInputs() {
