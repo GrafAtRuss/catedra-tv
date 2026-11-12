@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.15";
+var APP_VERSION = "1.2.16";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -329,7 +329,7 @@ function shell(body) {
   return (
     '<header class="hd">' +
       '<img class="mark" src="icon.png" alt="">' +
-      '<button data-tv="1" data-act="go" data-arg="home" style="background:none;border:0;text-align:left"><div class="brand">Кафедра <span class="ver">' + APP_VERSION + '</span></div><div class="sub">Римско-католический кафедральный собор Непорочного Зачатия Пресвятой Девы Марии в Москве</div></button>' +
+      '<div class="titles"><div class="brand">Кафедра <span class="ver">' + APP_VERSION + '</span></div><div class="sub">Римско-католический кафедральный собор Непорочного Зачатия Пресвятой Девы Марии в Москве</div></div>' +
       '<div class="clock"><b>' + esc(a.clock.label) + '</b><span>МСК · ' + esc(a.clock.name) + "</span></div>" +
     "</header>" +
     '<div class="main">' + body + "</div>" +
@@ -359,7 +359,7 @@ function homeHtml() {
   if (!clips) clips = '<p class="muted">Последние эфиры канала прихода на YouTube появятся здесь.</p>';
   var poster = state.poster ? '<img alt="" src="' + esc(state.poster) + '"><div class="shade"></div>' : "";
   var now = a.current
-    ? '<p class="kicker">Сейчас</p><h2>' + esc(a.current.time + "  " + a.current.title) + "</h2>" + (a.current.end ? '<p class="muted">до ' + esc(a.current.end) + "</p>" : "")
+    ? '<p class="kicker">Сейчас</p><div class="now-time">' + esc(a.current.time) + '</div><h2>' + esc(a.current.title) + "</h2>" + (a.current.end ? '<p class="muted">до ' + esc(a.current.end) + "</p>" : "")
     : '<h2>Сейчас службы нет</h2>';
   var next = a.next ? '<p>Дальше ' + esc(a.next.time + "  " + a.next.title) + "</p>" : "";
   return (
@@ -372,10 +372,12 @@ function homeHtml() {
       '<section class="card side"><div class="kicker">Расписание · МСК</div>' + now + next +
         '<div class="chips">' + rites + "</div>" +
         '<p class="muted">' + esc(state.notice) + "</p></section></div>" +
+    '<div class="home-extra">' +
     '<section class="card today"><h2>Сегодня</h2>' + today + "</section>" +
     '<section class="card today"><h2>Записи</h2><div class="grid">' + clips + "</div></section>" +
     '<button class="card today" data-tv="1" data-act="go" data-arg="settings" style="text-align:left;width:100%"><h2>Настройки</h2>' +
-      '<p class="muted">Прокси: префикс http://хост:порт или параметр url. Свой Invidious или Piped и запасная ссылка на эфир, в том числе .m3u8.</p></button>'
+      '<p class="muted">Прокси: префикс http://хост:порт или параметр url. Свой Invidious или Piped и запасная ссылка на эфир, в том числе .m3u8.</p></button>' +
+    "</div>"
   );
 }
 
@@ -627,7 +629,9 @@ function render() {
   else if (state.screen === "live") body = liveHtml();
   else if (state.screen === "watch") body = watchHtml();
   document.getElementById("app").innerHTML = shell(body);
-  document.getElementById("app").className = state.full ? "fs" : "";
+  var cls = state.full ? "fs" : "";
+  if (state.screen === "home") cls += (cls ? " " : "") + "home";
+  document.getElementById("app").className = cls;
   bindInputs();
   var prefer = document.querySelector("[data-fs]");
   var first = prefer || document.querySelector("[data-tv]");
@@ -1285,7 +1289,14 @@ function hideSplash() {
   }, 700);
 }
 
+function markShell() {
+  var root = document.documentElement;
+  if (root.className.indexOf("phone") >= 0) return;
+  if (root.className.indexOf("tv") < 0) root.className = (root.className + " tv").replace(/^\s+|\s+$/g, "");
+}
+
 function init() {
+  markShell();
   loadSettings();
   registerKeys();
   document.addEventListener("keydown", onKey);
