@@ -2,7 +2,8 @@
 
 ## 1.2.28
 
-- Из телевизионной сборки убрано разрешение REQUEST_INSTALL_PACKAGES. Из-за него YaOS Store писал «APK имеет запрещенные permissions».
+- Обычные сборки по-прежнему ставят обновление сами.
+- Отдельный файл для YaOS Store: Catedra-TV-1.2.28-YaOS.apk, без разрешения REQUEST_INSTALL_PACKAGES.
 
 ## 1.2.27
 

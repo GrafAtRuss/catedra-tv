@@ -58,5 +58,42 @@ python3 "$ROOT/scripts/sign-apk-compat.py" "$WORK/aligned.apk" "$OUT/Catedra-TV-
 "$BT/apksigner" verify --verbose --min-sdk-version 21 "$OUT/Catedra-TV-$VER.apk" | head -12
 "$BT/zipalign" -c -p 4 "$OUT/Catedra-TV-$VER.apk"
 ls -lh "$OUT/Catedra-TV-$VER.apk"
-rm -f "$OUT/Catedra-TV-$VER.apk.idsig" "$OUT/Catedra-$VER.apk" "$OUT/Catedra-1.2.7.wgt" "$OUT/Catedra-1.2.7.apk" "$OUT/Catedra-Phone-1.2.7.apk"
+
+# Отдельная сборка для YaOS Store: без REQUEST_INSTALL_PACKAGES.
+sed '/REQUEST_INSTALL_PACKAGES/d' "$APP/AndroidManifest.xml" > "$WORK/AndroidManifest-yaos.xml"
+"$BT/aapt2" link \
+  -I "$JAR" \
+  --manifest "$WORK/AndroidManifest-yaos.xml" \
+  --min-sdk-version 21 \
+  --target-sdk-version 34 \
+  --version-code 148 \
+  --version-name "$VER" \
+  -o "$WORK/base-yaos.apk" \
+  "$WORK/res.zip"
+rm -rf "$WORK/pkg-yaos"
+mkdir -p "$WORK/pkg-yaos"
+unzip -q -o "$WORK/base-yaos.apk" -d "$WORK/pkg-yaos"
+cp "$WORK/dex/classes.dex" "$WORK/pkg-yaos/"
+mkdir -p "$WORK/pkg-yaos/assets"
+cp -a "$WORK/assets/www" "$WORK/pkg-yaos/assets/"
+python3 - << 'PY'
+import os, zipfile
+root = "/tmp/catedra-apk/pkg-yaos"
+out = "/tmp/catedra-apk/unsigned-yaos.apk"
+stored = {"resources.arsc", "AndroidManifest.xml"}
+with zipfile.ZipFile(out, "w") as z:
+    for dirpath, _, files in os.walk(root):
+        for name in sorted(files):
+            full = os.path.join(dirpath, name)
+            rel = os.path.relpath(full, root).replace(os.sep, "/")
+            mode = zipfile.ZIP_STORED if rel in stored else zipfile.ZIP_DEFLATED
+            z.write(full, rel, compress_type=mode)
+print("zipped", os.path.getsize(out))
+PY
+"$BT/zipalign" -f -p 4 "$WORK/unsigned-yaos.apk" "$WORK/aligned-yaos.apk"
+python3 "$ROOT/scripts/sign-apk-compat.py" "$WORK/aligned-yaos.apk" "$OUT/Catedra-TV-$VER-YaOS.apk"
+"$BT/apksigner" verify --verbose --min-sdk-version 21 "$OUT/Catedra-TV-$VER-YaOS.apk" | head -8
+"$BT/aapt" dump permissions "$OUT/Catedra-TV-$VER-YaOS.apk"
+ls -lh "$OUT/Catedra-TV-$VER-YaOS.apk"
+rm -f "$OUT/Catedra-TV-$VER.apk.idsig" "$OUT/Catedra-TV-$VER-YaOS.apk.idsig" "$OUT/Catedra-$VER.apk" "$OUT/Catedra-1.2.7.wgt" "$OUT/Catedra-1.2.7.apk" "$OUT/Catedra-Phone-1.2.7.apk"
 echo done
