@@ -6,7 +6,7 @@ BT="$SDK/build-tools/34.0.0"
 JAR="$SDK/platforms/android-34/android.jar"
 APP="$ROOT/android-tv"
 OUT="$ROOT/public/downloads"
-VER=1.2.28
+VER=1.2.29
 WORK=/tmp/catedra-apk
 rm -rf "$WORK"
 mkdir -p "$WORK/gen" "$WORK/classes" "$WORK/dex" "$WORK/assets/www" "$OUT"
@@ -23,7 +23,7 @@ cp "$ROOT/tizen-widget/js/app.js" "$WORK/assets/www/js/"
   --java "$WORK/gen" \
   --min-sdk-version 21 \
   --target-sdk-version 34 \
-  --version-code 148 \
+  --version-code 149 \
   --version-name "$VER" \
   -o "$WORK/base.apk" \
   "$WORK/res.zip"
@@ -66,7 +66,7 @@ sed '/REQUEST_INSTALL_PACKAGES/d' "$APP/AndroidManifest.xml" > "$WORK/AndroidMan
   --manifest "$WORK/AndroidManifest-yaos.xml" \
   --min-sdk-version 21 \
   --target-sdk-version 34 \
-  --version-code 148 \
+  --version-code 149 \
   --version-name "$VER" \
   -o "$WORK/base-yaos.apk" \
   "$WORK/res.zip"

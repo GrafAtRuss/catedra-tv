@@ -264,6 +264,27 @@ public class MainActivity extends Activity {
         }
     }
 
+    private void applyFullscreen(final boolean on) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                View decor = getWindow().getDecorView();
+                if (on) {
+                    getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY
+                            | View.SYSTEM_UI_FLAG_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+                            | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
+                            | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                } else {
+                    getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
+                    decor.setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
+                }
+            }
+        });
+    }
+
     private void applyAwake(final boolean on) {
         runOnUiThread(new Runnable() {
             @Override
@@ -310,6 +331,11 @@ public class MainActivity extends Activity {
         public void notice(String kind, String title, String text) {
             String screen = "archive".equals(kind) ? "archive" : ("update".equals(kind) ? "settings" : "live");
             Alerts.show(MainActivity.this, kind, title, text, screen);
+        }
+
+        @JavascriptInterface
+        public void setFullscreen(String on) {
+            applyFullscreen("1".equals(on));
         }
 
         @JavascriptInterface
