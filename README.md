@@ -69,3 +69,10 @@
 - `tizen-widget/` — виджет Samsung и общий экран приложения
 - `android-tv/` — оболочка Android TV / YaOS / YaOS X
 - `android-phone/` — оболочка телефона и планшета
+
+## ОС Аврора
+
+- [Catedra-Aurora-1.2.32-armv7hl.rpm](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-armv7hl.rpm) — 32 бита
+- [Catedra-Aurora-1.2.32-aarch64.rpm](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-aarch64.rpm) — 64 бита
+
+Установка в режиме разработчика: `devel-su` и `rpm -ivh` нужного файла. Пакет не подписан сертификатом магазина Авроры.

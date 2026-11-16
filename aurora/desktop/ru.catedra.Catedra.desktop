@@ -1,0 +1,20 @@
+[Desktop Entry]
+Type=Application
+X-Nemo-Application-Type=silica-qt5
+Icon=ru.catedra.Catedra
+Exec=/usr/bin/ru.catedra.Catedra
+Name=Catedra
+Name[ru]=Кафедра
+
+[X-Application]
+Permissions=Internet;Audio
+OrganizationName=ru.catedra
+ApplicationName=Catedra
+
+[X-Aurora-Application]
+IconMode=Crop
+Orientation=Portrait;Landscape
+
+[X-Aurora-SplashScreen]
+GradientStartColor=#4a1020
+GradientEndColor=#10080a
