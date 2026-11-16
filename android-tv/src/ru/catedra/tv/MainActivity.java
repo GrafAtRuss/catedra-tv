@@ -95,6 +95,8 @@ public class MainActivity extends Activity {
         web.setWebChromeClient(new Chrome());
         web.setFocusable(true);
         web.setFocusableInTouchMode(true);
+        web.setContentDescription("Кафедра");
+        web.setImportantForAccessibility(View.IMPORTANT_FOR_ACCESSIBILITY_YES);
         web.requestFocus();
         readIntent(getIntent());
         web.loadUrl("file:///android_asset/www/index.html");
@@ -159,6 +161,11 @@ public class MainActivity extends Activity {
 
     private void readIntent(Intent intent) {
         if (intent == null) return;
+        if ("android.media.action.MEDIA_PLAY_FROM_SEARCH".equals(intent.getAction())) {
+            pendingScreen = "live";
+            pendingId = "";
+            return;
+        }
         if (intent.hasExtra("screen")) pendingScreen = intent.getStringExtra("screen");
         if (intent.hasExtra("id")) pendingId = intent.getStringExtra("id");
         Uri data = intent.getData();

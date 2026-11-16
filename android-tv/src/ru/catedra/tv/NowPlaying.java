@@ -12,12 +12,19 @@ import android.os.Build;
 public final class NowPlaying {
     private static MediaSession session;
     private static boolean active;
+    private static boolean liveOffer;
 
     public static boolean isPlaying() {
         return active;
     }
 
     private NowPlaying() {}
+
+    public static void offerContinue(Context context, boolean on) {
+        liveOffer = on;
+        if (active) return;
+        update(context, false, "Св. Месса", "");
+    }
 
     public static void update(Context context, boolean playing, String title, String poster) {
         Context app = context.getApplicationContext();
@@ -27,6 +34,11 @@ public final class NowPlaying {
             session.setCallback(new MediaSession.Callback() {
                 @Override
                 public void onPlay() {
+                    MainActivity.open("live", "");
+                }
+
+                @Override
+                public void onPlayFromSearch(String query, android.os.Bundle extras) {
                     MainActivity.open("live", "");
                 }
 
@@ -47,7 +59,7 @@ public final class NowPlaying {
         meta.putString(MediaMetadata.METADATA_KEY_TITLE, title);
         meta.putString(MediaMetadata.METADATA_KEY_ARTIST, "Кафедральный собор Непорочного Зачатия");
         meta.putString(MediaMetadata.METADATA_KEY_DISPLAY_TITLE, title);
-        meta.putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, "Кафедра");
+        meta.putString(MediaMetadata.METADATA_KEY_DISPLAY_SUBTITLE, playing ? "Кафедра" : "Продолжить просмотр");
         if (poster != null && poster.startsWith("http")) {
             meta.putString(MediaMetadata.METADATA_KEY_ART_URI, poster);
         }
@@ -55,13 +67,24 @@ public final class NowPlaying {
         PlaybackState.Builder state = new PlaybackState.Builder();
         state.setActions(
             PlaybackState.ACTION_PLAY
+                | PlaybackState.ACTION_PLAY_FROM_SEARCH
                 | PlaybackState.ACTION_PAUSE
                 | PlaybackState.ACTION_PLAY_PAUSE
                 | PlaybackState.ACTION_STOP
         );
-        state.setState(playing ? PlaybackState.STATE_PLAYING : PlaybackState.STATE_PAUSED, 0, playing ? 1f : 0f);
-        session.setPlaybackState(state.build());
-        session.setActive(playing);
+        if (playing) {
+            state.setState(PlaybackState.STATE_PLAYING, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 1f);
+            session.setPlaybackState(state.build());
+            session.setActive(true);
+        } else if (liveOffer) {
+            state.setState(PlaybackState.STATE_PAUSED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0f);
+            session.setPlaybackState(state.build());
+            session.setActive(true);
+        } else {
+            state.setState(PlaybackState.STATE_STOPPED, PlaybackState.PLAYBACK_POSITION_UNKNOWN, 0f);
+            session.setPlaybackState(state.build());
+            session.setActive(false);
+        }
         NotificationManager manager = (NotificationManager) app.getSystemService(Context.NOTIFICATION_SERVICE);
         if (manager == null) return;
         if (Build.VERSION.SDK_INT >= 26) {
@@ -78,7 +101,7 @@ public final class NowPlaying {
             : new Notification.Builder(app);
         builder.setSmallIcon(R.drawable.ic_stat);
         builder.setContentTitle(title);
-        builder.setContentText("Кафедра · прямой эфир");
+        builder.setContentText(playing ? "Кафедра · прямой эфир" : "Продолжить просмотр");
         builder.setOngoing(true);
         builder.setVisibility(Notification.VISIBILITY_PUBLIC);
         builder.setStyle(new Notification.MediaStyle().setMediaSession(session.getSessionToken()));

@@ -60,10 +60,14 @@ public class CatedraSearchProvider extends ContentProvider {
 
     private void add(MatrixCursor cursor, int id, String title, String text, String data, String query) {
         String blob = (title + " " + text).toLowerCase();
-        if (query.length() > 0 && blob.indexOf(query) < 0 && !"месса".equals(query) && !"кафедра".equals(query)) {
+        if (query.length() > 0 && blob.indexOf(query) < 0 && !voiceQuery(query)) {
             if (title.toLowerCase().indexOf(query) < 0) return;
         }
         cursor.addRow(new Object[] { Integer.valueOf(id), title, text, data });
+    }
+
+    private boolean voiceQuery(String query) {
+        return query.indexOf("месс") >= 0 || query.indexOf("кафед") >= 0 || query.indexOf("эфир") >= 0 || query.indexOf("продолж") >= 0 || query.indexOf("трансля") >= 0;
     }
 
     private String readCatalog() {

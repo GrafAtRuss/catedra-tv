@@ -101,10 +101,9 @@ public final class Watcher {
         SharedPreferences prefs = context.getSharedPreferences("catedra-alerts", Context.MODE_PRIVATE);
         boolean known = prefs.getBoolean("seen", false);
         boolean was = prefs.getBoolean("live", false);
-        if (!known) {
-            prefs.edit().putBoolean("seen", true).putBoolean("live", on).apply();
-            return;
-        }
+        prefs.edit().putBoolean("seen", true).putBoolean("live", on).apply();
+        HomeChannel.continueMass(context, on);
+        if (!known) return;
         if (on && !was) Alerts.show(context, "live", "Началась трансляция", "Сейчас идёт месса собора Непорочного Зачатия", "live");
         else if (!on && was) Alerts.show(context, "live-off", "", "", "");
     }

@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.29";
+var APP_VERSION = "1.2.30";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -633,6 +633,7 @@ function render() {
   if (state.screen === "home") cls += (cls ? " " : "") + "home";
   document.getElementById("app").className = cls;
   bindInputs();
+  voiceNames();
   var prefer = document.querySelector("[data-fs]");
   var first = prefer || document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
@@ -640,6 +641,19 @@ function render() {
   syncPlane();
   syncNative();
   fitTv();
+}
+
+function voiceNames() {
+  var nodes = document.querySelectorAll("button, a, [data-tv]");
+  var i;
+  for (i = 0; i < nodes.length; i++) {
+    var node = nodes[i];
+    var text = (node.innerText || node.textContent || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+    text = text.replace(/^[0-9]\s+/, "");
+    if (!text) continue;
+    node.setAttribute("role", "button");
+    node.setAttribute("aria-label", text);
+  }
 }
 
 function fitTv() {

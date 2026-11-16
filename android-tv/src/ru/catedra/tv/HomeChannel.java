@@ -21,6 +21,25 @@ public final class HomeChannel {
 
     private HomeChannel() {}
 
+    public static void continueMass(Context context, boolean on) {
+        if (Build.VERSION.SDK_INT < 26) return;
+        try {
+            ContentResolver resolver = context.getContentResolver();
+            if (!on) {
+                resolver.delete(
+                    TvContract.WatchNextPrograms.CONTENT_URI,
+                    TvContract.WatchNextPrograms.COLUMN_INTERNAL_PROVIDER_ID + "=?",
+                    new String[]{"catedra-playing"}
+                );
+                NowPlaying.offerContinue(context, false);
+                return;
+            }
+            insertWatchNext(context, resolver, "Св. Месса", "live", "");
+            NowPlaying.offerContinue(context, true);
+        } catch (Exception ignored) {
+        }
+    }
+
     public static void publish(Context context, String json) {
         writeCatalog(context, json);
         if (Build.VERSION.SDK_INT < 26) return;
@@ -150,7 +169,7 @@ public final class HomeChannel {
             values.put(TvContract.WatchNextPrograms.COLUMN_TYPE, TvContract.WatchNextPrograms.TYPE_CLIP);
             values.put(TvContract.WatchNextPrograms.COLUMN_WATCH_NEXT_TYPE, TvContract.WatchNextPrograms.WATCH_NEXT_TYPE_CONTINUE);
             values.put(TvContract.WatchNextPrograms.COLUMN_TITLE, title);
-            values.put(TvContract.WatchNextPrograms.COLUMN_SHORT_DESCRIPTION, "Кафедра");
+            values.put(TvContract.WatchNextPrograms.COLUMN_SHORT_DESCRIPTION, "Продолжить просмотр");
             values.put(TvContract.WatchNextPrograms.COLUMN_LAST_ENGAGEMENT_TIME_UTC_MILLIS, System.currentTimeMillis());
             values.put(TvContract.WatchNextPrograms.COLUMN_BROWSABLE, 1);
             values.put(TvContract.WatchNextPrograms.COLUMN_INTENT_URI, openUri(context, screen == null || screen.length() == 0 ? "live" : screen, ""));
