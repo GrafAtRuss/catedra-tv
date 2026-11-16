@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.30";
+var APP_VERSION = "1.2.31";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -463,18 +463,30 @@ function offlineHtml() {
     '<button class="plain" data-tv="1" data-act="force-live">Открыть плеер всё равно</button></div></div>';
 }
 
+function deckHtml(mode, title) {
+  if (mode === "frame") return "";
+  var pill = mode === "live" ? '<span class="deck-pill">В эфире</span>' : "";
+  return '<div class="deck">' +
+    '<div class="deck-top">' + pill + '<span class="deck-title">' + esc(title || "") + "</span></div>" +
+    '<div class="deck-bar">' +
+      '<button class="deck-play" data-tv="1" data-act="deck-toggle" aria-label="Пауза"><i></i></button>' +
+      '<div class="deck-track" id="deck-track"><b id="deck-fill"></b></div>' +
+      '<span class="deck-time" id="deck-time">' + (mode === "live" ? "прямой эфир" : "0:00") + "</span>" +
+    "</div></div>";
+}
+
 function liveHtml() {
   var kind = state.liveKind;
   var showPlayer = state.onAir === true || state.forceLive;
-  var stage = '<div class="stage">';
+  var stage = '<div class="stage cinema">';
   if (state.onAir === null && !state.forceLive) {
     stage = '<div class="offline"><img class="bg" alt="" src="splash.jpg"><div class="veil"></div><div class="inn">' +
       '<img class="seal" alt="" src="icon.png"><div class="kicker">ПРЯМОЙ ЭФИР</div><h2>Проверяем эфир</h2>' +
       '<p class="muted quiet">Если трансляции нет, здесь останется объявление.</p></div></div>';
   } else if (!showPlayer) stage = offlineHtml();
   else if (kind === "iframe") stage += '<iframe src="' + esc(currentEmbed()) + '" allowfullscreen></iframe></div>';
-  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay playsinline controls></video></div>';
-  else stage += "</div>";
+  else if (kind === "video") stage += '<video id="html5" src="' + esc(currentHls()) + '" autoplay playsinline></video>' + deckHtml("live", state.streamTitle) + "</div>";
+  else stage += deckHtml("live", state.streamTitle) + "</div>";
   var modes = showPlayer
     ? '<div class="chips" style="margin-top:12px">' +
       '<button data-tv="1" data-act="live-mode" data-arg="native" class="' + (kind === "native" ? "on" : "") + '">Плеер ТВ</button>' +
@@ -487,7 +499,7 @@ function liveHtml() {
 function watchHtml() {
   var w = state.watch;
   if (!w) return "<p>Нет записи</p>";
-  return playerChrome("Запись", w.title, '<div class="stage"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe></div>');
+  return playerChrome("Запись", w.title, '<div class="stage cinema"><iframe src="' + esc(watchSrc(w)) + '" allowfullscreen></iframe></div>');
 }
 
 function watchSrc(w) {
@@ -634,6 +646,7 @@ function render() {
   document.getElementById("app").className = cls;
   bindInputs();
   voiceNames();
+  bindDeck();
   var prefer = document.querySelector("[data-fs]");
   var first = prefer || document.querySelector("[data-tv]");
   if (first && first.focus) first.focus();
@@ -827,7 +840,78 @@ function onAction(act, arg, node) {
     state.liveKind = arg;
     state.status = "";
     render();
+  } else if (act === "deck-toggle") toggleDeck();
+}
+
+function toggleDeck() {
+  var video = document.getElementById("html5");
+  var deck = document.querySelector(".deck");
+  if (video) {
+    if (video.paused) { try { video.play(); } catch (e) {} }
+    else video.pause();
+    return;
   }
+  try {
+    if (window.webapis && webapis.avplay) {
+      var st = webapis.avplay.getState();
+      if (st === "PLAYING" || st === "READY") {
+        webapis.avplay.pause();
+        if (deck && deck.className.indexOf("paused") < 0) deck.className += " paused";
+      } else {
+        webapis.avplay.play();
+        if (deck) deck.className = deck.className.replace(" paused", "");
+      }
+    }
+  } catch (e2) {}
+}
+
+function deckClock(s) {
+  s = Math.floor(s || 0);
+  var m = Math.floor(s / 60);
+  var h = Math.floor(m / 60);
+  m = m % 60;
+  var sec = s % 60;
+  function z(n) { return (n < 10 ? "0" : "") + n; }
+  if (h) return h + ":" + z(m) + ":" + z(sec);
+  return m + ":" + z(sec);
+}
+
+function bindDeck() {
+  var video = document.getElementById("html5");
+  var fill = document.getElementById("deck-fill");
+  var time = document.getElementById("deck-time");
+  var deck = document.querySelector(".deck");
+  var track = document.getElementById("deck-track");
+  if (!video || !deck) return;
+  function paint() {
+    var d = video.duration;
+    var live = !(d > 0) || d === Infinity;
+    if (live) {
+      if (fill) fill.style.width = "100%";
+      if (time) time.textContent = "прямой эфир";
+      return;
+    }
+    if (fill) fill.style.width = Math.round((video.currentTime / d) * 100) + "%";
+    if (time) time.textContent = deckClock(video.currentTime) + " / " + deckClock(d);
+  }
+  video.addEventListener("timeupdate", paint);
+  video.addEventListener("play", function () { deck.className = deck.className.replace(" paused", ""); });
+  video.addEventListener("pause", function () {
+    if (deck.className.indexOf("paused") < 0) deck.className += " paused";
+  });
+  if (track) {
+    track.addEventListener("click", function (e) {
+      e.stopPropagation();
+      var d = video.duration;
+      if (!(d > 0) || d === Infinity) return;
+      var r = track.getBoundingClientRect();
+      var x = (e.clientX - r.left) / (r.width || 1);
+      if (x < 0) x = 0;
+      if (x > 1) x = 1;
+      video.currentTime = x * d;
+    });
+  }
+  paint();
 }
 
 function setFull(on) {
