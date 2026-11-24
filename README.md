@@ -75,7 +75,7 @@
 - [Catedra-Aurora-1.2.32-armv7hl.rpm](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-armv7hl.rpm) — 32 бита
 - [Catedra-Aurora-1.2.32-aarch64.rpm](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-aarch64.rpm) — 64 бита
 
-Установка в режиме разработчика: `devel-su` и `rpm -ivh` нужного файла. Пакет не подписан сертификатом магазина Авроры.
+Установка в режиме разработчика: `devel-su` и `rpm -ivh` нужного файла. Оба пакета подписаны штатным способом Авроры (ГОСТ Р 34.10-2012, сертификат Regular). Это снимает отказ «в файлах нет подписи». Сертификат публичный и помечен как тестовый: на Авроре 5 пакет с ним ставится в режиме разработчика. Если магазин потребует личный сертификат, его выдаёт ОМП — partners@omp.ru, затем dev-support@omp.ru.
 
 ## RuStore
 
