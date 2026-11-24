@@ -76,3 +76,10 @@
 - [Catedra-Aurora-1.2.32-aarch64.rpm](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-aarch64.rpm) — 64 бита
 
 Установка в режиме разработчика: `devel-su` и `rpm -ivh` нужного файла. Пакет не подписан сертификатом магазина Авроры.
+
+## RuStore
+
+В магазин загружаются сборки без самостоятельной установки обновлений:
+
+- [Catedra-Phone-RuStore-1.2.33.apk](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-Phone-RuStore-1.2.33.apk)
+- [Catedra-TV-RuStore-1.2.33.apk](https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-TV-RuStore-1.2.33.apk)

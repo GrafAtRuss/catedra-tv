@@ -1,5 +1,5 @@
 /** Одна версия для превью, виджета Samsung, Android TV и телефона. */
-export const APP_VERSION = "1.2.31";
+export const APP_VERSION = "1.2.33";
 
 export const WGT_FILE = `Catedra-TV-${APP_VERSION}.wgt`;
 

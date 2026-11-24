@@ -233,7 +233,7 @@ public class MainActivity extends Activity {
             web.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    Updater.check(MainActivity.this, true);
+                    if (Watcher.updatesAllowed(MainActivity.this)) Updater.check(MainActivity.this, true);
                 }
             }, 4000);
         }
@@ -352,11 +352,13 @@ public class MainActivity extends Activity {
 
         @JavascriptInterface
         public void checkUpdate() {
+            if (!Watcher.updatesAllowed(MainActivity.this)) return;
             Updater.check(MainActivity.this, false);
         }
 
         @JavascriptInterface
         public void installUpdate() {
+            if (!Watcher.updatesAllowed(MainActivity.this)) return;
             runOnUiThread(new Runnable() {
                 @Override
                 public void run() {

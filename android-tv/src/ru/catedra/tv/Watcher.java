@@ -67,10 +67,22 @@ public final class Watcher {
         }
     }
 
-    static void runCheck(Context context) {
+    public static boolean updatesAllowed(Context context) {
         try {
-            checkUpdate(context);
-        } catch (Exception ignored) {
+            InputStream in = context.getAssets().open("www/no-update");
+            if (in != null) in.close();
+            return false;
+        } catch (Exception e) {
+            return true;
+        }
+    }
+
+    static void runCheck(Context context) {
+        if (updatesAllowed(context)) {
+            try {
+                checkUpdate(context);
+            } catch (Exception ignored) {
+            }
         }
         try {
             checkLive(context);

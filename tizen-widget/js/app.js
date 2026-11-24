@@ -1,6 +1,6 @@
 /* Кафедра — Samsung UE49N5500, Tizen 4.0. Без ES2020: нет ?. и ??. */
 /* Версия совпадает с src/lib/version.ts и config.xml. */
-var APP_VERSION = "1.2.31";
+var APP_VERSION = "1.2.33";
 var CHANNEL = "UCv_ztXSXtfmUW_fSF08kFIA";
 var EMBED = "https://kinescope.io/embed/0ctuKXYjVsu6o6C5LUe6Fj";
 var PAGE = "https://kinescope.io/0ctuKXYjVsu6o6C5LUe6Fj";
@@ -1323,12 +1323,16 @@ function updateKind() {
 }
 
 function updateBanner() {
+  if (window.CATEDRA_STORE) return "";
   var u = state.update;
   if (!u || (u.state !== "ready" && u.state !== "available" && u.state !== "downloading" && u.state !== "need-permission")) return "";
   return '<button class="box" data-tv="1" data-act="install-update" style="width:100%;text-align:left;margin-bottom:16px"><div class="kicker">ОБНОВЛЕНИЕ</div><div>' + esc(u.message) + "</div></button>";
 }
 
 function updateBox() {
+  if (window.CATEDRA_STORE) {
+    return '<section class="box"><h2>Версия</h2><p class="muted">Версия ' + APP_VERSION + '. Это выпуск для RuStore: новые версии ставит магазин, встроенной установки нет.</p></section>';
+  }
   var u = state.update || { message: "" };
   var button = u.state === "ready" || u.state === "available" || u.state === "need-permission"
     ? '<button class="go" data-tv="1" data-act="install-update">Скачать и установить</button>'
@@ -1339,6 +1343,7 @@ function updateBox() {
 }
 
 function checkUpdate() {
+  if (window.CATEDRA_STORE) return;
   state.update.state = "checking";
   state.update.message = "Проверяю GitHub…";
   if (state.screen === "settings" || state.screen === "home") render();
@@ -1362,6 +1367,7 @@ function checkUpdate() {
     var i;
     for (i = 0; i < assets.length; i++) {
       var name = assets[i].name || "";
+      if (name.indexOf("RuStore") >= 0 || name.indexOf("YaOS") >= 0) continue;
       if (kind === "phone" && name.indexOf("Catedra-Phone-") === 0 && name.indexOf(".apk") > 0) asset = assets[i];
       else if (kind === "tv" && name.indexOf("Catedra-TV-") === 0 && name.indexOf(".apk") > 0) asset = assets[i];
       else if (kind === "tv" && !asset && name.indexOf("Catedra-") === 0 && name.indexOf("Phone") < 0 && name.indexOf(".apk") > 0) asset = assets[i];
