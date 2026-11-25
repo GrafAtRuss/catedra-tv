@@ -15,6 +15,7 @@ use Joomla\CMS\Language\Text;
 /** @var string $error */
 /** @var bool $showVersion */
 /** @var int $columns */
+/** @var string $note */
 /** @var string $moduleclass */
 ?>
 <div class="appcatalog<?php echo $moduleclass; ?>" style="--appcatalog-columns: <?php echo (int) $columns; ?>" data-appcatalog-close="<?php echo htmlspecialchars(Text::_('MOD_APPCATALOG_CLOSE'), ENT_QUOTES, 'UTF-8'); ?>">
@@ -36,14 +37,16 @@ use Joomla\CMS\Language\Text;
                 </p>
             <?php endif; ?>
             <div class="appcatalog-app__row">
-                <img
-                    class="appcatalog-app__icon"
-                    src="<?php echo htmlspecialchars($app->icon, ENT_QUOTES, 'UTF-8'); ?>"
-                    alt=""
-                    width="96"
-                    height="96"
-                    loading="lazy"
-                >
+                <?php if ($app->icon !== '') : ?>
+                    <img
+                        class="appcatalog-app__icon"
+                        src="<?php echo htmlspecialchars($app->icon, ENT_QUOTES, 'UTF-8'); ?>"
+                        alt=""
+                        width="96"
+                        height="96"
+                        loading="lazy"
+                    >
+                <?php endif; ?>
                 <a
                     class="appcatalog-app__qr"
                     href="<?php echo $download; ?>"
@@ -60,15 +63,22 @@ use Joomla\CMS\Language\Text;
             <?php endif; ?>
         </article>
     <?php endforeach; ?>
-    <?php if ($agreements !== []) : ?>
-        <nav class="appcatalog__policies" aria-label="<?php echo htmlspecialchars(Text::_('MOD_APPCATALOG_POLICIES'), ENT_QUOTES, 'UTF-8'); ?>">
-            <?php foreach ($agreements as $doc) : ?>
-                <a
-                    href="<?php echo htmlspecialchars($doc->url, ENT_QUOTES, 'UTF-8'); ?>"
-                    data-appcatalog-policy="<?php echo htmlspecialchars($doc->id, ENT_QUOTES, 'UTF-8'); ?>"
-                    data-title="<?php echo htmlspecialchars($doc->name, ENT_QUOTES, 'UTF-8'); ?>"
-                ><?php echo htmlspecialchars($doc->name, ENT_QUOTES, 'UTF-8'); ?></a>
-            <?php endforeach; ?>
-        </nav>
+    <?php if ($note !== '' || $agreements !== []) : ?>
+        <div class="appcatalog__footer">
+            <?php if ($note !== '') : ?>
+                <p class="appcatalog__note"><?php echo nl2br(htmlspecialchars($note, ENT_QUOTES, 'UTF-8'), false); ?></p>
+            <?php endif; ?>
+            <?php if ($agreements !== []) : ?>
+                <nav class="appcatalog__policies" aria-label="<?php echo htmlspecialchars(Text::_('MOD_APPCATALOG_POLICIES'), ENT_QUOTES, 'UTF-8'); ?>">
+                    <?php foreach ($agreements as $doc) : ?>
+                        <a
+                            href="<?php echo htmlspecialchars($doc->url, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-appcatalog-policy="<?php echo htmlspecialchars($doc->id, ENT_QUOTES, 'UTF-8'); ?>"
+                            data-title="<?php echo htmlspecialchars($doc->name, ENT_QUOTES, 'UTF-8'); ?>"
+                        ><?php echo htmlspecialchars($doc->name, ENT_QUOTES, 'UTF-8'); ?></a>
+                    <?php endforeach; ?>
+                </nav>
+            <?php endif; ?>
+        </div>
     <?php endif; ?>
 </div>

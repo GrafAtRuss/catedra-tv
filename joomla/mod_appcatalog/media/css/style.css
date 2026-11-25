@@ -140,14 +140,32 @@
   }
 }
 
-.appcatalog__policies {
+.appcatalog__footer {
   flex: 0 0 100%;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 2px;
+}
+
+.appcatalog__note {
+  margin: 0;
+  max-width: 46rem;
+  text-align: center;
+  color: var(--appcatalog-text);
+  font-size: 0.95rem;
+  line-height: 1.45;
+}
+
+.appcatalog__policies {
   width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;
   gap: 8px 20px;
-  margin: 2px 0 0;
+  margin: 0;
   padding: 0;
 }
 

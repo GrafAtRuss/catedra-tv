@@ -16,6 +16,7 @@ use Joomla\CMS\Helper\HelperFactoryAwareInterface;
 use Joomla\CMS\Helper\HelperFactoryAwareTrait;
 use Joomla\CMS\Helper\ModuleHelper;
 use Joomla\CMS\Language\Text;
+use Joomla\CMS\Uri\Uri;
 use Joomla\Input\Input;
 use Joomla\Registry\Registry;
 
@@ -57,6 +58,9 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
         } catch (\Throwable $exception) {
             $error = Text::_('MOD_APPCATALOG_ERROR');
         }
+
+        $apps = array_merge($apps, $this->extras($params));
+        $note = trim((string) $params->get('policies_note', ''));
 
         $wa = $this->app->getDocument()->getWebAssetManager();
         $wa->registerStyle(
@@ -123,5 +127,75 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
                 return isset($allow[$app->id]);
             }
         ));
+    }
+
+    /**
+     * @return list<object>
+     */
+    private function extras(Registry $params): array
+    {
+        $raw = $params->get('extras', []);
+
+        if (is_object($raw)) {
+            $raw = (array) $raw;
+        }
+
+        if (is_string($raw) && $raw !== '') {
+            $decoded = json_decode($raw, true);
+            $raw = is_array($decoded) ? $decoded : [];
+        }
+
+        if (!is_array($raw)) {
+            return [];
+        }
+
+        $items = [];
+
+        foreach ($raw as $row) {
+            if (is_object($row)) {
+                $row = (array) $row;
+            }
+
+            if (!is_array($row)) {
+                continue;
+            }
+
+            $name = trim((string) ($row['name'] ?? ''));
+            $download = $this->httpUrl((string) ($row['download'] ?? ''));
+
+            if ($name === '' || $download === '') {
+                continue;
+            }
+
+            $item = new \stdClass();
+            $item->id = 'extra';
+            $item->name = $name;
+            $item->version = trim((string) ($row['version'] ?? ''));
+            $item->icon = $this->httpUrl((string) ($row['icon'] ?? ''), true);
+            $item->download = $download;
+            $item->description = trim((string) ($row['description'] ?? ''));
+            $items[] = $item;
+        }
+
+        return $items;
+    }
+
+    private function httpUrl(string $value, bool $allowRelative = false): string
+    {
+        $value = trim($value);
+
+        if ($value === '' || preg_match('#^(?:javascript|data|vbscript):#i', $value)) {
+            return '';
+        }
+
+        if (preg_match('#^https?://#i', $value)) {
+            return $value;
+        }
+
+        if ($allowRelative && !preg_match('#^[a-z][a-z0-9+.-]*:#i', $value)) {
+            return rtrim(Uri::root(), '/') . '/' . ltrim($value, '/');
+        }
+
+        return '';
     }
 }

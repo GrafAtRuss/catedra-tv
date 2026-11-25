@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension type="module" client="site" method="upgrade">
     <name>MOD_APPCATALOG</name>
-    <version>1.0.1</version>
+    <version>1.0.2</version>
     <creationDate>2026-11</creationDate>
     <author>Ермаков Алексей Сергеевич</author>
     <authorEmail>alexey@ermakov-mail.ru</authorEmail>
@@ -93,6 +93,63 @@
                     <option value="1">JYES</option>
                     <option value="0">JNO</option>
                 </field>
+                <field
+                    name="extras"
+                    type="subform"
+                    label="MOD_APPCATALOG_FIELD_EXTRAS"
+                    description="MOD_APPCATALOG_FIELD_EXTRAS_DESC"
+                    multiple="true"
+                    max="30"
+                    layout="joomla.form.field.subform.repeatable"
+                    buttons="add,remove,move"
+                >
+                    <form>
+                        <field
+                            name="name"
+                            type="text"
+                            label="MOD_APPCATALOG_EXTRA_NAME"
+                            filter="string"
+                            required="true"
+                        />
+                        <field
+                            name="version"
+                            type="text"
+                            label="MOD_APPCATALOG_EXTRA_VERSION"
+                            filter="string"
+                        />
+                        <field
+                            name="icon"
+                            type="url"
+                            label="MOD_APPCATALOG_EXTRA_ICON"
+                            description="MOD_APPCATALOG_EXTRA_ICON_DESC"
+                            filter="url"
+                        />
+                        <field
+                            name="download"
+                            type="url"
+                            label="MOD_APPCATALOG_EXTRA_DOWNLOAD"
+                            description="MOD_APPCATALOG_EXTRA_DOWNLOAD_DESC"
+                            filter="url"
+                            required="true"
+                        />
+                        <field
+                            name="description"
+                            type="textarea"
+                            label="MOD_APPCATALOG_EXTRA_DESCRIPTION"
+                            description="MOD_APPCATALOG_EXTRA_DESCRIPTION_DESC"
+                            rows="3"
+                            filter="string"
+                        />
+                    </form>
+                </field>
+                <field
+                    name="policies_note"
+                    type="textarea"
+                    label="MOD_APPCATALOG_FIELD_NOTE"
+                    description="MOD_APPCATALOG_FIELD_NOTE_DESC"
+                    rows="3"
+                    filter="string"
+                />
             </fieldset>
             <fieldset name="advanced">
                 <field
