@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <extension type="module" client="site" method="upgrade">
     <name>MOD_APPCATALOG</name>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <creationDate>2026-11</creationDate>
     <author>Ермаков Алексей Сергеевич</author>
     <authorEmail>alexey@ermakov-mail.ru</authorEmail>
@@ -71,6 +71,16 @@
                     multiple="true"
                     layout="joomla.form.field.list-fancy-select"
                     showon="mode:only"
+                />
+                <field
+                    name="columns"
+                    type="number"
+                    label="MOD_APPCATALOG_FIELD_COLUMNS"
+                    description="MOD_APPCATALOG_FIELD_COLUMNS_DESC"
+                    default="3"
+                    min="1"
+                    max="8"
+                    filter="integer"
                 />
                 <field
                     name="show_version"

@@ -5,14 +5,25 @@
   --appcatalog-text: #3f362c;
   --appcatalog-muted: #8a7040;
   --appcatalog-paper: #fffdf8;
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
-  gap: 18px;
+  --appcatalog-columns: 3;
+  --appcatalog-gap: 18px;
+  box-sizing: border-box;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   align-items: stretch;
+  gap: var(--appcatalog-gap);
+}
+
+.appcatalog *,
+.appcatalog *::before,
+.appcatalog *::after {
+  box-sizing: inherit;
 }
 
 .appcatalog__error {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
+  width: 100%;
   margin: 0;
   color: var(--appcatalog-ink);
 }
@@ -20,7 +31,11 @@
 .appcatalog-app {
   display: flex;
   flex-direction: column;
+  flex: 0 1 calc((100% - (var(--appcatalog-columns) - 1) * var(--appcatalog-gap)) / var(--appcatalog-columns));
+  width: calc((100% - (var(--appcatalog-columns) - 1) * var(--appcatalog-gap)) / var(--appcatalog-columns));
+  max-width: calc((100% - (var(--appcatalog-columns) - 1) * var(--appcatalog-gap)) / var(--appcatalog-columns));
   min-width: 0;
+  container-type: inline-size;
   background: var(--appcatalog-paper);
   border: 1px solid var(--appcatalog-gold);
   border-radius: 2px;
@@ -33,7 +48,7 @@
   padding: 14px 12px 4px;
   text-align: center;
   font-family: Georgia, "Times New Roman", Times, serif;
-  font-size: 1.2rem;
+  font-size: clamp(0.78rem, 9cqi, 1.2rem);
   font-weight: 600;
   line-height: 1.25;
   color: var(--appcatalog-ink);
@@ -53,7 +68,7 @@
   margin: 0;
   padding: 0 12px 12px;
   text-align: center;
-  font-size: 0.82rem;
+  font-size: clamp(0.68rem, 5cqi, 0.82rem);
   letter-spacing: 0.03em;
   color: var(--appcatalog-muted);
   border-bottom: 1px solid var(--appcatalog-line);
@@ -67,24 +82,26 @@
   display: flex;
   align-items: center;
   justify-content: space-evenly;
-  gap: 12px;
-  padding: 14px 12px;
+  gap: clamp(6px, 3cqi, 12px);
+  padding: clamp(8px, 3cqi, 14px) clamp(6px, 3cqi, 12px);
 }
 
 .appcatalog-app__icon {
-  width: 96px;
-  height: 96px;
+  width: min(96px, 40%);
+  height: auto;
+  aspect-ratio: 1;
   object-fit: contain;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
 }
 
 .appcatalog-app__qr {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 112px;
-  height: 112px;
-  flex: 0 0 auto;
+  width: min(112px, 46%);
+  height: auto;
+  aspect-ratio: 1;
+  flex: 0 1 auto;
   background: #fff;
   border: 1px solid var(--appcatalog-line);
   text-decoration: none;
@@ -92,8 +109,8 @@
 
 .appcatalog-app__qr svg {
   display: block;
-  width: 104px;
-  height: 104px;
+  width: 92%;
+  height: auto;
 }
 
 .appcatalog-app__qr-fallback {
@@ -109,7 +126,7 @@
   border-top: 1px solid var(--appcatalog-line);
   text-align: center;
   color: var(--appcatalog-text);
-  font-size: 0.95rem;
+  font-size: clamp(0.72rem, 6.5cqi, 0.95rem);
   line-height: 1.4;
 }
 
@@ -124,7 +141,8 @@
 }
 
 .appcatalog__policies {
-  grid-column: 1 / -1;
+  flex: 0 0 100%;
+  width: 100%;
   display: flex;
   flex-wrap: wrap;
   justify-content: center;

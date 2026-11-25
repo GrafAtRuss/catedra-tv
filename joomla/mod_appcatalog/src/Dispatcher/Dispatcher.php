@@ -42,6 +42,8 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
         $url = trim((string) $params->get('catalog_url', AppsHelper::DEFAULT_URL));
         $refresh = (int) $params->get('refresh', 60);
         $showVersion = (int) $params->get('show_version', 1) === 1;
+        $columns = (int) $params->get('columns', 3);
+        $columns = max(1, min(8, $columns));
         $moduleclass = htmlspecialchars((string) $params->get('moduleclass_sfx', ''), ENT_QUOTES, 'UTF-8');
         $error = '';
         $apps = [];

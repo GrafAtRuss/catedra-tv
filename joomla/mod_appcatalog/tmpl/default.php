@@ -14,9 +14,10 @@ use Joomla\CMS\Language\Text;
 /** @var array $agreements */
 /** @var string $error */
 /** @var bool $showVersion */
+/** @var int $columns */
 /** @var string $moduleclass */
 ?>
-<div class="appcatalog<?php echo $moduleclass; ?>" data-appcatalog-close="<?php echo htmlspecialchars(Text::_('MOD_APPCATALOG_CLOSE'), ENT_QUOTES, 'UTF-8'); ?>">
+<div class="appcatalog<?php echo $moduleclass; ?>" style="--appcatalog-columns: <?php echo (int) $columns; ?>" data-appcatalog-close="<?php echo htmlspecialchars(Text::_('MOD_APPCATALOG_CLOSE'), ENT_QUOTES, 'UTF-8'); ?>">
     <?php if ($error !== '') : ?>
         <p class="appcatalog__error"><?php echo htmlspecialchars($error, ENT_QUOTES, 'UTF-8'); ?></p>
     <?php endif; ?>
