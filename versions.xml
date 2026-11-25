@@ -11,11 +11,11 @@
   <agreements>
     <agreement id="terms">
       <name>Пользовательское соглашение</name>
-      <url>https://grafatruss.github.io/catedra-tv/eula.html</url>
+      <url>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/docs/eula.html</url>
     </agreement>
     <agreement id="privacy">
       <name>Политика конфиденциальности</name>
-      <url>https://grafatruss.github.io/catedra-tv/privacy.html</url>
+      <url>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/docs/privacy.html</url>
     </agreement>
   </agreements>
   <applications>

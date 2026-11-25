@@ -3,12 +3,12 @@
     {
       "id": "terms",
       "name": "Пользовательское соглашение",
-      "url": "https://grafatruss.github.io/catedra-tv/eula.html"
+      "url": "https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/docs/eula.html"
     },
     {
       "id": "privacy",
       "name": "Политика конфиденциальности",
-      "url": "https://grafatruss.github.io/catedra-tv/privacy.html"
+      "url": "https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/docs/privacy.html"
     }
   ],
   "apps": [

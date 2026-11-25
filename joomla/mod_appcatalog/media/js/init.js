@@ -8,6 +8,7 @@
   var frame = null;
   var titleEl = null;
   var lastFocus = null;
+  var currentUrl = "";
 
   function closeLabel() {
     var root = document.querySelector("[data-appcatalog-close]");
@@ -45,6 +46,45 @@
     });
   }
 
+  function resolve(base, href) {
+    try {
+      return new URL(href, base).href;
+    } catch (error) {
+      return href;
+    }
+  }
+
+  function loadDoc(url) {
+    currentUrl = url;
+    frame.removeAttribute("srcdoc");
+    frame.src = "about:blank";
+    fetch(url, { credentials: "omit" })
+      .then(function (response) {
+        if (!response.ok) {
+          throw new Error("catalog document");
+        }
+        return response.text();
+      })
+      .then(function (html) {
+        var base = url.replace(/[^/]+$/, "");
+        var bridge =
+          "<base href=\"" + base.replace(/"/g, "%22") + "\">" +
+          "<script>document.addEventListener('click',function(e){var a=e.target.closest&&e.target.closest('a');if(!a)return;var h=a.getAttribute('href')||'';if(!h||h.charAt(0)==='#')return;if(/^(https?:|mailto:|tel:)/i.test(h)){if(/^https?:/i.test(h)){a.target='_blank';a.rel='noopener noreferrer';}return;}e.preventDefault();parent.postMessage({type:'appcatalog-doc',href:h},'*');});<\/script>";
+        if (/<head[^>]*>/i.test(html)) {
+          html = html.replace(/<head[^>]*>/i, function (tag) {
+            return tag + bridge;
+          });
+        } else {
+          html = bridge + html;
+        }
+        frame.srcdoc = html;
+      })
+      .catch(function () {
+        frame.removeAttribute("srcdoc");
+        frame.src = url;
+      });
+  }
+
   function open(url, title) {
     ensure();
     var button = popup.querySelector(".appcatalog-popup__close");
@@ -55,10 +95,10 @@
     titleEl.textContent = title || "";
     popup.querySelector(".appcatalog-popup__window").setAttribute("aria-label", title || "");
     frame.title = title || "";
-    frame.src = url;
     popup.hidden = false;
     document.body.classList.add("appcatalog-popup-open");
     button.focus();
+    loadDoc(url);
   }
 
   function close() {
@@ -66,12 +106,28 @@
       return;
     }
     popup.hidden = true;
+    frame.removeAttribute("srcdoc");
     frame.src = "about:blank";
     document.body.classList.remove("appcatalog-popup-open");
     if (lastFocus && lastFocus.focus) {
       lastFocus.focus();
     }
   }
+
+  window.addEventListener("message", function (event) {
+    if (!frame || !popup || popup.hidden || event.source !== frame.contentWindow) {
+      return;
+    }
+    var data = event.data || {};
+    if (data.type !== "appcatalog-doc" || typeof data.href !== "string") {
+      return;
+    }
+    var next = resolve(currentUrl, data.href);
+    if (!/^https:\/\//i.test(next)) {
+      return;
+    }
+    loadDoc(next);
+  });
 
   function draw(el) {
     var url = el.getAttribute("data-qr");
