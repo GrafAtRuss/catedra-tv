@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Каталог приложений «Кафедра».
+  Обновляется скриптом scripts/update-catalog.py при выпуске версии.
+  https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml
+  У каждого приложения: id, название, версия, краткое описание, иконка, прямая ссылка.
+-->
+<catalog>
+  <updated>2026-11-24T10:09:34Z</updated>
+  <applications>
+    <application id="phone">
+      <name>Кафедра · Телефон</name>
+      <version>1.2.33</version>
+      <description>Телефон и планшет на Android. Эфир, расписание и записи. Обновление скачивается само.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-Phone-1.2.33.apk</download>
+      <file>Catedra-Phone-1.2.33.apk</file>
+    </application>
+    <application id="tv">
+      <name>Кафедра · Android TV</name>
+      <version>1.2.33</version>
+      <description>Телевизор Android TV. Эфир, расписание и записи с пульта.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-TV-1.2.33.apk</download>
+      <file>Catedra-TV-1.2.33.apk</file>
+    </application>
+    <application id="yaos">
+      <name>Кафедра · Яндекс ТВ</name>
+      <version>1.2.33</version>
+      <description>YaOS и YaOS X. Эфир, голос Алисы и «Продолжить просмотр».</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-TV-1.2.33-YaOS.apk</download>
+      <file>Catedra-TV-1.2.33-YaOS.apk</file>
+    </application>
+    <application id="tizen">
+      <name>Кафедра · Samsung</name>
+      <version>1.2.33</version>
+      <description>Samsung Smart TV. Виджет ставится через ForkTizenInstall.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-TV-1.2.33.wgt</download>
+      <file>Catedra-TV-1.2.33.wgt</file>
+    </application>
+    <application id="aurora32">
+      <name>Кафедра · Аврора 32</name>
+      <version>1.2.32</version>
+      <description>ОС Аврора, 32 бита (armv7hl). Эфир, расписание и записи.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-armv7hl.rpm</download>
+      <file>Catedra-Aurora-1.2.32-armv7hl.rpm</file>
+    </application>
+    <application id="aurora64">
+      <name>Кафедра · Аврора 64</name>
+      <version>1.2.32</version>
+      <description>ОС Аврора, 64 бита (aarch64). Эфир, расписание и записи.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.32/Catedra-Aurora-1.2.32-aarch64.rpm</download>
+      <file>Catedra-Aurora-1.2.32-aarch64.rpm</file>
+    </application>
+    <application id="phone-rustore">
+      <name>Кафедра · RuStore, телефон</name>
+      <version>1.2.33</version>
+      <description>Сборка для магазина RuStore. Без самостоятельной установки обновлений.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-Phone-RuStore-1.2.33.apk</download>
+      <file>Catedra-Phone-RuStore-1.2.33.apk</file>
+    </application>
+    <application id="tv-rustore">
+      <name>Кафедра · RuStore, телевизор</name>
+      <version>1.2.33</version>
+      <description>Сборка для магазина RuStore. Без самостоятельной установки обновлений.</description>
+      <icon>https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/catalog/icons/catedra.png</icon>
+      <download>https://github.com/GrafAtRuss/catedra-tv/releases/download/v1.2.33/Catedra-TV-RuStore-1.2.33.apk</download>
+      <file>Catedra-TV-RuStore-1.2.33.apk</file>
+    </application>
+  </applications>
+</catalog>

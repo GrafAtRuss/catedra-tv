@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<extension type="module" client="site" method="upgrade">
+    <name>MOD_CATEDRA_APPS</name>
+    <version>1.0.0</version>
+    <creationDate>2026-11</creationDate>
+    <author>Ермаков Алексей Сергеевич</author>
+    <authorEmail>alexey@ermakov-mail.ru</authorEmail>
+    <authorUrl>https://catedra.ru</authorUrl>
+    <copyright>(C) 2026 Ермаков Алексей Сергеевич</copyright>
+    <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
+    <description>MOD_CATEDRA_APPS_XML_DESCRIPTION</description>
+    <namespace path="src">Ermakov\Module\CatedraApps</namespace>
+    <files>
+        <folder module="mod_catedra_apps">services</folder>
+        <folder>src</folder>
+        <folder>tmpl</folder>
+        <folder>language</folder>
+    </files>
+    <scriptfile>script.php</scriptfile>
+    <media destination="mod_catedra_apps" folder="media">
+        <folder>css</folder>
+        <folder>js</folder>
+    </media>
+    <languages>
+        <language tag="ru-RU" client="site">language/ru-RU/mod_catedra_apps.ini</language>
+        <language tag="ru-RU" client="site">language/ru-RU/mod_catedra_apps.sys.ini</language>
+        <language tag="ru-RU" client="administrator">language/ru-RU/mod_catedra_apps.ini</language>
+        <language tag="ru-RU" client="administrator">language/ru-RU/mod_catedra_apps.sys.ini</language>
+        <language tag="en-GB" client="site">language/en-GB/mod_catedra_apps.ini</language>
+        <language tag="en-GB" client="site">language/en-GB/mod_catedra_apps.sys.ini</language>
+        <language tag="en-GB" client="administrator">language/en-GB/mod_catedra_apps.ini</language>
+        <language tag="en-GB" client="administrator">language/en-GB/mod_catedra_apps.sys.ini</language>
+    </languages>
+    <config>
+        <fields name="params" addfieldprefix="Ermakov\Module\CatedraApps\Site\Field">
+            <fieldset name="basic">
+                <field
+                    name="catalog_url"
+                    type="url"
+                    label="MOD_CATEDRA_APPS_FIELD_URL"
+                    description="MOD_CATEDRA_APPS_FIELD_URL_DESC"
+                    default="https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml"
+                    filter="url"
+                    validate="url"
+                />
+                <field
+                    name="refresh"
+                    type="number"
+                    label="MOD_CATEDRA_APPS_FIELD_REFRESH"
+                    description="MOD_CATEDRA_APPS_FIELD_REFRESH_DESC"
+                    default="60"
+                    min="0"
+                    max="10080"
+                    filter="integer"
+                />
+                <field
+                    name="mode"
+                    type="list"
+                    label="MOD_CATEDRA_APPS_FIELD_MODE"
+                    default="only"
+                    filter="cmd"
+                >
+                    <option value="all">MOD_CATEDRA_APPS_FIELD_MODE_ALL</option>
+                    <option value="only">MOD_CATEDRA_APPS_FIELD_MODE_ONLY</option>
+                </field>
+                <field
+                    name="apps"
+                    type="apps"
+                    label="MOD_CATEDRA_APPS_FIELD_APPS"
+                    description="MOD_CATEDRA_APPS_FIELD_APPS_DESC"
+                    multiple="true"
+                    layout="joomla.form.field.list-fancy-select"
+                    default="phone,tv,yaos,tizen,aurora32,aurora64"
+                    showon="mode:only"
+                />
+                <field
+                    name="show_version"
+                    type="radio"
+                    label="MOD_CATEDRA_APPS_FIELD_VERSION"
+                    description="MOD_CATEDRA_APPS_FIELD_VERSION_DESC"
+                    default="1"
+                    filter="integer"
+                >
+                    <option value="1">JYES</option>
+                    <option value="0">JNO</option>
+                </field>
+            </fieldset>
+            <fieldset name="advanced">
+                <field
+                    name="moduleclass_sfx"
+                    type="textarea"
+                    label="COM_MODULES_FIELD_MODULECLASS_SFX_LABEL"
+                    rows="3"
+                />
+                <field
+                    name="cache"
+                    type="list"
+                    label="COM_MODULES_FIELD_CACHE_LABEL"
+                    default="0"
+                    filter="integer"
+                >
+                    <option value="1">JGLOBAL_USE_GLOBAL</option>
+                    <option value="0">COM_MODULES_FIELD_VALUE_NOCACHING</option>
+                </field>
+            </fieldset>
+        </fields>
+    </config>
+</extension>

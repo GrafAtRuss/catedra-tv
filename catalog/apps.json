@@ -1,0 +1,52 @@
+{
+  "apps": [
+    {
+      "id": "phone",
+      "name": "Кафедра · Телефон",
+      "description": "Телефон и планшет на Android. Эфир, расписание и записи. Обновление скачивается само.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "tv",
+      "name": "Кафедра · Android TV",
+      "description": "Телевизор Android TV. Эфир, расписание и записи с пульта.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "yaos",
+      "name": "Кафедра · Яндекс ТВ",
+      "description": "YaOS и YaOS X. Эфир, голос Алисы и «Продолжить просмотр».",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "tizen",
+      "name": "Кафедра · Samsung",
+      "description": "Samsung Smart TV. Виджет ставится через ForkTizenInstall.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "aurora32",
+      "name": "Кафедра · Аврора 32",
+      "description": "ОС Аврора, 32 бита (armv7hl). Эфир, расписание и записи.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "aurora64",
+      "name": "Кафедра · Аврора 64",
+      "description": "ОС Аврора, 64 бита (aarch64). Эфир, расписание и записи.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "phone-rustore",
+      "name": "Кафедра · RuStore, телефон",
+      "description": "Сборка для магазина RuStore. Без самостоятельной установки обновлений.",
+      "icon": "catedra.png"
+    },
+    {
+      "id": "tv-rustore",
+      "name": "Кафедра · RuStore, телевизор",
+      "description": "Сборка для магазина RuStore. Без самостоятельной установки обновлений.",
+      "icon": "catedra.png"
+    }
+  ]
+}
