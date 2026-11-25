@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @package     Catedra.Module
+ * @package     AppCatalog.Module
  * @copyright   (C) 2026 Ермаков Алексей Сергеевич
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -17,8 +17,8 @@ use Joomla\DI\ServiceProviderInterface;
 return new class () implements ServiceProviderInterface {
     public function register(Container $container): void
     {
-        $container->registerServiceProvider(new ModuleDispatcherFactoryServiceProvider('\\Ermakov\\Module\\CatedraApps'));
-        $container->registerServiceProvider(new HelperFactoryServiceProvider('\\Ermakov\\Module\\CatedraApps\\Site\\Helper'));
+        $container->registerServiceProvider(new ModuleDispatcherFactoryServiceProvider('\\Ermakov\\Module\\AppCatalog'));
+        $container->registerServiceProvider(new HelperFactoryServiceProvider('\\Ermakov\\Module\\AppCatalog\\Site\\Helper'));
         $container->registerServiceProvider(new ModuleServiceProvider());
     }
 };

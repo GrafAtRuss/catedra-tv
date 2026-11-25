@@ -1,16 +1,16 @@
 <?php
 
 /**
- * @package     Catedra.Module
+ * @package     AppCatalog.Module
  * @copyright   (C) 2026 Ермаков Алексей Сергеевич
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-namespace Ermakov\Module\CatedraApps\Site\Field;
+namespace Ermakov\Module\AppCatalog\Site\Field;
 
 \defined('_JEXEC') or die;
 
-use Ermakov\Module\CatedraApps\Site\Helper\AppsHelper;
+use Ermakov\Module\AppCatalog\Site\Helper\AppsHelper;
 use Joomla\CMS\Factory;
 use Joomla\CMS\Form\Field\ListField;
 use Joomla\CMS\Language\Text;
@@ -25,9 +25,9 @@ class AppsField extends ListField
     protected function getOptions(): array
     {
         $options = parent::getOptions();
-        Factory::getLanguage()->load('mod_catedra_apps', JPATH_SITE . '/modules/mod_catedra_apps');
-        Factory::getLanguage()->load('mod_catedra_apps', JPATH_ADMINISTRATOR);
-        Factory::getLanguage()->load('mod_catedra_apps', JPATH_SITE);
+        Factory::getLanguage()->load('mod_appcatalog', JPATH_SITE . '/modules/mod_appcatalog');
+        Factory::getLanguage()->load('mod_appcatalog', JPATH_ADMINISTRATOR);
+        Factory::getLanguage()->load('mod_appcatalog', JPATH_SITE);
 
         $url = '';
 
@@ -40,18 +40,18 @@ class AppsField extends ListField
         }
 
         try {
-            $apps = (new AppsHelper())->load($url, 360);
+            $catalog = (new AppsHelper())->load($url, 360);
         } catch (\Throwable $error) {
             $options[] = (object) [
                 'value' => '',
-                'text' => Text::_('MOD_CATEDRA_APPS_FIELD_APPS_EMPTY'),
+                'text' => Text::_('MOD_APPCATALOG_FIELD_APPS_EMPTY'),
                 'disable' => true,
             ];
 
             return $options;
         }
 
-        foreach ($apps as $app) {
+        foreach ($catalog['apps'] as $app) {
             $label = $app->name;
 
             if ($app->version !== '') {

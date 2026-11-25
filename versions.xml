@@ -4,9 +4,20 @@
   Обновляется скриптом scripts/update-catalog.py при выпуске версии.
   https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml
   У каждого приложения: id, название, версия, краткое описание, иконка, прямая ссылка.
+  Пользовательское соглашение и политика конфиденциальности — общие, один раз на весь каталог.
 -->
 <catalog>
   <updated>2026-11-24T10:09:34Z</updated>
+  <agreements>
+    <agreement id="terms">
+      <name>Пользовательское соглашение</name>
+      <url>https://grafatruss.github.io/catedra-tv/eula.html</url>
+    </agreement>
+    <agreement id="privacy">
+      <name>Политика конфиденциальности</name>
+      <url>https://grafatruss.github.io/catedra-tv/privacy.html</url>
+    </agreement>
+  </agreements>
   <applications>
     <application id="phone">
       <name>Кафедра · Телефон</name>

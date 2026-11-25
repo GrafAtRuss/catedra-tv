@@ -1,16 +1,16 @@
 <?php
 
 /**
- * @package     Catedra.Module
+ * @package     AppCatalog.Module
  * @copyright   (C) 2026 Ермаков Алексей Сергеевич
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-namespace Ermakov\Module\CatedraApps\Site\Dispatcher;
+namespace Ermakov\Module\AppCatalog\Site\Dispatcher;
 
 \defined('_JEXEC') or die;
 
-use Ermakov\Module\CatedraApps\Site\Helper\AppsHelper;
+use Ermakov\Module\AppCatalog\Site\Helper\AppsHelper;
 use Joomla\CMS\Dispatcher\DispatcherInterface;
 use Joomla\CMS\Helper\HelperFactoryAwareInterface;
 use Joomla\CMS\Helper\HelperFactoryAwareTrait;
@@ -22,8 +22,6 @@ use Joomla\Registry\Registry;
 class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
 {
     use HelperFactoryAwareTrait;
-
-    private const DEFAULTS = ['phone', 'tv', 'yaos', 'tizen', 'aurora32', 'aurora64'];
 
     protected $module;
 
@@ -38,7 +36,7 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
     public function dispatch(): void
     {
         $language = $this->app->getLanguage();
-        $language->load('mod_catedra_apps', JPATH_SITE . '/modules/mod_catedra_apps');
+        $language->load('mod_appcatalog', JPATH_SITE . '/modules/mod_appcatalog');
 
         $params = new Registry($this->module->params);
         $url = trim((string) $params->get('catalog_url', AppsHelper::DEFAULT_URL));
@@ -47,38 +45,40 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
         $moduleclass = htmlspecialchars((string) $params->get('moduleclass_sfx', ''), ENT_QUOTES, 'UTF-8');
         $error = '';
         $apps = [];
+        $agreements = [];
 
         try {
             $helper = $this->getHelperFactory()->getHelper('AppsHelper');
-            $apps = $helper->load($url, $refresh);
-            $apps = $this->select($apps, $params);
+            $catalog = $helper->load($url, $refresh);
+            $apps = $this->select($catalog['apps'], $params);
+            $agreements = $catalog['agreements'];
         } catch (\Throwable $exception) {
-            $error = Text::_('MOD_CATEDRA_APPS_ERROR');
+            $error = Text::_('MOD_APPCATALOG_ERROR');
         }
 
         $wa = $this->app->getDocument()->getWebAssetManager();
         $wa->registerStyle(
-            'mod_catedra_apps.style',
-            'media/mod_catedra_apps/css/style.css',
+            'mod_appcatalog.style',
+            'media/mod_appcatalog/css/style.css',
             ['version' => 'auto']
         );
-        $wa->useStyle('mod_catedra_apps.style');
+        $wa->useStyle('mod_appcatalog.style');
         $wa->registerScript(
-            'mod_catedra_apps.qrcode',
-            'media/mod_catedra_apps/js/qrcode.js',
+            'mod_appcatalog.qrcode',
+            'media/mod_appcatalog/js/qrcode.js',
             ['version' => 'auto'],
             ['defer' => true]
         );
         $wa->registerScript(
-            'mod_catedra_apps',
-            'media/mod_catedra_apps/js/init.js',
+            'mod_appcatalog',
+            'media/mod_appcatalog/js/init.js',
             ['version' => 'auto'],
             ['defer' => true],
-            ['mod_catedra_apps.qrcode']
+            ['mod_appcatalog.qrcode']
         );
-        $wa->useScript('mod_catedra_apps');
+        $wa->useScript('mod_appcatalog');
 
-        require ModuleHelper::getLayoutPath('mod_catedra_apps');
+        require ModuleHelper::getLayoutPath('mod_appcatalog');
     }
 
     /**
@@ -87,7 +87,7 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
      */
     private function select(array $apps, Registry $params): array
     {
-        $mode = (string) $params->get('mode', 'only');
+        $mode = (string) $params->get('mode', 'all');
 
         if ($mode !== 'only') {
             return $apps;
@@ -109,8 +109,8 @@ class Dispatcher implements DispatcherInterface, HelperFactoryAwareInterface
 
         $picked = array_values(array_filter(array_map('strval', $picked)));
 
-        if ($picked === []) {
-            $picked = self::DEFAULTS;
+        if ($mode !== 'only' || $picked === []) {
+            return $apps;
         }
 
         $allow = array_flip($picked);

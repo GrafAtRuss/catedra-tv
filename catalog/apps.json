@@ -1,4 +1,16 @@
 {
+  "agreements": [
+    {
+      "id": "terms",
+      "name": "Пользовательское соглашение",
+      "url": "https://grafatruss.github.io/catedra-tv/eula.html"
+    },
+    {
+      "id": "privacy",
+      "name": "Политика конфиденциальности",
+      "url": "https://grafatruss.github.io/catedra-tv/privacy.html"
+    }
+  ],
   "apps": [
     {
       "id": "phone",

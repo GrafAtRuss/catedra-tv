@@ -1,12 +1,12 @@
 <?php
 
 /**
- * @package     Catedra.Module
+ * @package     AppCatalog.Module
  * @copyright   (C) 2026 Ермаков Алексей Сергеевич
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
 
-namespace Ermakov\Module\CatedraApps\Site\Helper;
+namespace Ermakov\Module\AppCatalog\Site\Helper;
 
 \defined('_JEXEC') or die;
 
@@ -20,7 +20,7 @@ class AppsHelper
     public const DEFAULT_URL = 'https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml';
 
     /**
-     * @return list<object>
+     * @return array{apps: list<object>, agreements: list<object>}
      */
     public function load(string $url, int $ttlMinutes): array
     {
@@ -77,7 +77,7 @@ class AppsHelper
         try {
             if (class_exists(HttpFactory::class)) {
                 $http = HttpFactory::getHttp();
-                $response = $http->get($url, ['User-Agent' => 'Catedra-Joomla/1.0'], 20);
+                $response = $http->get($url, ['User-Agent' => 'AppCatalog/1.0'], 20);
                 $code = (int) ($response->code ?? 0);
                 $body = (string) ($response->body ?? '');
             }
@@ -93,7 +93,7 @@ class AppsHelper
         $context = stream_context_create([
             'http' => [
                 'timeout' => 20,
-                'header' => "User-Agent: Catedra-Joomla/1.0\r\nAccept: application/xml\r\n",
+                'header' => "User-Agent: AppCatalog/1.0\r\nAccept: application/xml\r\n",
             ],
             'ssl' => [
                 'verify_peer' => true,
@@ -110,7 +110,7 @@ class AppsHelper
     }
 
     /**
-     * @return list<object>
+     * @return array{apps: list<object>, agreements: list<object>}
      */
     private function parse(string $raw): array
     {
@@ -127,7 +127,25 @@ class AppsHelper
             throw new \RuntimeException('Catalog XML is invalid.');
         }
 
-        $nodes = $xml->applications->application ?? $xml->application ?? [];
+        $agreements = [];
+
+        foreach ($xml->agreements->agreement ?? [] as $node) {
+            $id = trim((string) ($node['id'] ?? ''));
+            $url = $this->httpsUrl((string) $node->url);
+            $name = $this->plain((string) $node->name, 160);
+
+            if (!preg_match('/^[a-z0-9][a-z0-9_-]{0,40}$/', $id) || $url === '' || $name === '') {
+                continue;
+            }
+
+            $agreements[] = (object) [
+                'id' => $id,
+                'name' => $name,
+                'url' => $url,
+            ];
+        }
+
+        $nodes = $xml->applications->application ?? [];
         $apps = [];
 
         foreach ($nodes as $node) {
@@ -159,7 +177,10 @@ class AppsHelper
             throw new \RuntimeException('Catalog has no applications.');
         }
 
-        return $apps;
+        return [
+            'apps' => $apps,
+            'agreements' => $agreements,
+        ];
     }
 
     private function httpsUrl(string $url): string
@@ -186,7 +207,7 @@ class AppsHelper
 
     private function cacheFile(string $url): string
     {
-        $dir = JPATH_CACHE . '/mod_catedra_apps';
+        $dir = JPATH_CACHE . '/mod_appcatalog';
 
         if (!is_dir($dir) && !@mkdir($dir, 0755, true) && !is_dir($dir)) {
             return '';

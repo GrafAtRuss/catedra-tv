@@ -11,9 +11,9 @@
 
 ## Каталог версий
 
-Файл [versions.xml](https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml) перечисляет каждое приложение: название, версия, краткое описание, иконка и прямая ссылка на скачивание. При публикации релиза он обновляется сам.
+Файл [versions.xml](https://raw.githubusercontent.com/GrafAtRuss/catedra-tv/main/versions.xml) перечисляет каждое приложение: название, версия, краткое описание, иконка и прямая ссылка на скачивание. Пользовательское соглашение и политика конфиденциальности указаны один раз на весь каталог. При публикации релиза файл обновляется сам.
 
-Модуль для Joomla 6: [mod_catedra_apps.zip](https://github.com/GrafAtRuss/catedra-tv/raw/main/joomla/mod_catedra_apps.zip). Карточка — название, иконка, QR-код на файл и краткое описание. В настройках модуля выбирается, какие приложения показывать. Подробности в [joomla/README.md](joomla/README.md).
+Модуль для Joomla 6 не привязан к «Кафедре»: [mod_appcatalog.zip](https://github.com/GrafAtRuss/catedra-tv/raw/main/joomla/mod_appcatalog.zip). В настройках вставляется ссылка на XML. Скачивание открывается в новом окне, документы — во всплывающем. Подробности в [joomla/README.md](joomla/README.md).
 
 ## Обновление
 

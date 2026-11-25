@@ -94,7 +94,7 @@ def icon_url(icon: str) -> str:
     return RAW_ICONS + icon.lstrip("/")
 
 
-def build_xml(apps: list, found: dict, updated: str) -> str:
+def build_xml(apps: list, agreements: list, found: dict, updated: str) -> str:
     rows = [
         '<?xml version="1.0" encoding="UTF-8"?>',
         "<!--",
@@ -102,11 +102,21 @@ def build_xml(apps: list, found: dict, updated: str) -> str:
         "  Обновляется скриптом scripts/update-catalog.py при выпуске версии.",
         f"  https://raw.githubusercontent.com/{REPO}/main/versions.xml",
         "  У каждого приложения: id, название, версия, краткое описание, иконка, прямая ссылка.",
+        "  Пользовательское соглашение и политика конфиденциальности — общие, один раз на весь каталог.",
         "-->",
         "<catalog>",
         f"  <updated>{escape(updated)}</updated>",
-        "  <applications>",
+        "  <agreements>",
     ]
+    for doc in agreements:
+        rows.append(f'    <agreement id="{escape(doc["id"])}">')
+        rows.append(f"      <name>{escape(doc['name'])}</name>")
+        rows.append(f"      <url>{escape(doc['url'])}</url>")
+        rows.append("    </agreement>")
+    rows.extend([
+        "  </agreements>",
+        "  <applications>",
+    ])
     for app in apps:
         app_id = app["id"]
         item = found.get(app_id)
@@ -130,10 +140,11 @@ def build_xml(apps: list, found: dict, updated: str) -> str:
 def main() -> None:
     meta = json.loads((ROOT / "catalog" / "apps.json").read_text(encoding="utf-8"))
     apps = meta["apps"]
+    agreements = meta.get("agreements") or []
     found, updated = latest_assets(fetch_releases())
     if not found:
         raise SystemExit("в релизах не найдено ни одного приложения, файл не трогаю")
-    xml = build_xml(apps, found, updated or "")
+    xml = build_xml(apps, agreements, found, updated or "")
     target = ROOT / "versions.xml"
     previous = target.read_text(encoding="utf-8") if target.exists() else ""
     if previous == xml:

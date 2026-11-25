@@ -1,7 +1,7 @@
 <?php
 
 /**
- * @package     Catedra.Module
+ * @package     AppCatalog.Module
  * @copyright   (C) 2026 Ермаков Алексей Сергеевич
  * @license     GNU General Public License version 2 or later; see LICENSE.txt
  */
@@ -11,7 +11,7 @@
 /**
  * Языковые файлы нужны и на сайте, и в менеджере модулей.
  */
-class mod_catedra_appsInstallerScript
+class mod_appcatalogInstallerScript
 {
     public function install($parent): bool
     {
